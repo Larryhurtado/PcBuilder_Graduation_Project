@@ -13,7 +13,7 @@ const conditionChip = {
 /**
  * Tarjeta de oferta (inicio, catálogo, ficha y perfil de tienda). Toda la tarjeta lleva a la ficha
  * del componente; el botón de WhatsApp queda por encima y abre el chat sin salir de la tarjeta.
- * @param {{ offer: import('zod').infer<typeof import('../api/schemas.js').offerSchema> }} props
+ * @param {{ offer: import('zod').infer<typeof import('@hw/contracts').offerListItemSchema> }} props
  */
 export default function OfferCard({ offer }) {
   const { component, store } = offer;
