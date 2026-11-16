@@ -4,8 +4,25 @@ import {
   formatCOPAmount,
   formatDate,
   formatLocation,
+  formatPhone,
   formatWarranty,
 } from './format.js';
+
+describe('formatPhone', () => {
+  it('agrupa un celular colombiano en bloques legibles', () => {
+    expect(formatPhone('+573001234567')).toBe('+57 300 123 4567');
+  });
+
+  it('deja intacto otro número E.164 válido', () => {
+    expect(formatPhone('+12025550123')).toBe('+12025550123');
+  });
+
+  it('devuelve null si falta o es inválido', () => {
+    expect(formatPhone(null)).toBeNull();
+    expect(formatPhone('3001234567')).toBeNull();
+    expect(formatPhone('')).toBeNull();
+  });
+});
 
 describe('formatDate', () => {
   it('escribe la fecha larga en español, sin correrse de día por la zona horaria', () => {
