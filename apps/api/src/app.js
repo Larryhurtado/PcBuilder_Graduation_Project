@@ -8,7 +8,9 @@ import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
 import { createLocalStorage } from './kernel/storage.js';
 import { createAnalyticsModule } from './modules/analytics/index.js';
+import { createBuildsModule } from './modules/builds/index.js';
 import { createCatalogModule } from './modules/catalog/index.js';
+import { createCompatModule } from './modules/compat/index.js';
 import { createIdentityModule } from './modules/identity/index.js';
 import { createOffersModule } from './modules/offers/index.js';
 import { createStoresModule } from './modules/stores/index.js';
@@ -67,6 +69,8 @@ export function createApp({ config, pool = null, logger } = {}) {
     api.use(stores.router);
     const catalog = createCatalogModule({ db, auth: identity.middleware });
     api.use(catalog.router);
+    const compat = createCompatModule({ catalog: catalog.facade });
+    api.use(compat.router);
     const storage = createLocalStorage({ dir: config.STORAGE_DIR });
     const offers = createOffersModule({
       db,
@@ -77,6 +81,14 @@ export function createApp({ config, pool = null, logger } = {}) {
     });
     api.use(offers.router);
     api.use(offers.sellerRouter);
+    const builds = createBuildsModule({
+      db,
+      compat: compat.facade,
+      offers: offers.facade,
+      catalog: catalog.facade,
+      auth: identity.middleware,
+    });
+    api.use(builds.router);
     // Fotos subidas (almacenamiento local): se sirven como archivos estáticos, sin adivinar tipos
     app.use('/storage', express.static(storage.root, { index: false, dotfiles: 'deny' }));
     const analytics = createAnalyticsModule({

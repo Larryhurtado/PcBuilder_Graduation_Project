@@ -18,11 +18,20 @@ export function createAuthMiddleware(authenticate) {
     }
   }
 
+  /**
+   * Sesión opcional: sin encabezado `Authorization` sigue como visitante (`req.user` indefinido);
+   * con uno, debe ser válido (un token vencido responde TOKEN_EXPIRED para que el cliente refresque).
+   */
+  function optionalAuth(req, res, next) {
+    if (!req.get('authorization')) return next();
+    return requireAuth(req, res, next);
+  }
+
   /** Exige uno de los roles indicados (se usa después de requireAuth). */
   const requireRole =
     (...roles) =>
     (req, _res, next) =>
       roles.includes(req.user?.role) ? next() : next(new AppError('ROLE_FORBIDDEN'));
 
-  return { requireAuth, requireRole };
+  return { requireAuth, optionalAuth, requireRole };
 }
