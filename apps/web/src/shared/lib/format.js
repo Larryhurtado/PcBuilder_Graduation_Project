@@ -36,6 +36,18 @@ export function formatLocation({ city, department } = {}) {
 }
 
 /**
+ * Teléfono colombiano legible a partir de E.164: "+573001234567" -> "+57 300 123 4567". Cualquier
+ * otro formato se devuelve tal cual, y un valor vacío o inválido da null.
+ * @param {string | null | undefined} e164
+ */
+export function formatPhone(e164) {
+  if (typeof e164 !== 'string' || !/^\+[1-9]\d{7,14}$/.test(e164.trim())) return null;
+  const phone = e164.trim();
+  const match = phone.match(/^\+57(3\d{2})(\d{3})(\d{4})$/);
+  return match ? `+57 ${match[1]} ${match[2]} ${match[3]}` : phone;
+}
+
+/**
  * Fecha larga en español ("12 de octubre de 2026"); devuelve null si no es una fecha válida.
  * @param {string | null | undefined} iso fecha ISO 8601
  */
