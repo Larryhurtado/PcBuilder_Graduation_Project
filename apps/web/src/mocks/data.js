@@ -393,6 +393,27 @@ export const offers = listings.map(([store, key, priceCop, condition, warrantyMo
   };
 });
 
+/** Componentes de la Base de Datos Maestra como los devuelve GET /components/{id}. */
+export const components = Object.entries(catalog).map(
+  ([key, [category, brand, model, displayName, specs]]) => ({
+    id: componentIds[key],
+    category,
+    brand,
+    model,
+    displayName,
+    releaseYear: null,
+    version: 1,
+    updatedAt: '2026-10-12T00:00:00.000Z',
+    source: {
+      name: 'BuildCores OpenDB',
+      license: 'CC BY-NC-SA 4.0',
+      attributionText:
+        'Data from BuildCores OpenDB (https://github.com/buildcores/buildcores-open-db), licensed under CC BY-NC-SA 4.0.',
+    },
+    specs,
+  }),
+);
+
 /** Busca una oferta del catálogo simulado por el nombre de su componente. */
 export function findOffer(displayNamePart, storeName) {
   const offer = offers.find(

@@ -1,5 +1,120 @@
 import { describe, expect, it } from 'vitest';
-import { categoryLabels, specHighlight, specLine, specPills } from './specs.js';
+import {
+  categoryLabels,
+  keyMetrics,
+  specHighlight,
+  specLine,
+  specPills,
+  specRows,
+} from './specs.js';
+
+describe('specRows', () => {
+  const cpu = {
+    socket: 'AM5',
+    tdpW: 120,
+    cores: 8,
+    threads: 16,
+    baseClockGhz: 4.2,
+    boostClockGhz: 5,
+    memoryTypes: ['DDR5'],
+    hasIntegratedGraphics: true,
+  };
+  const value = (rows, key) => rows.find((row) => row.key === key).value;
+
+  it('arma la tabla de un procesador con unidades', () => {
+    const rows = specRows('cpu', cpu);
+    expect(value(rows, 'cores')).toBe('8 núcleos / 16 hilos');
+    expect(value(rows, 'clock')).toBe('4.2 GHz / 5 GHz');
+    expect(value(rows, 'tdp')).toBe('120 W');
+    expect(value(rows, 'igpu')).toBe('Sí');
+  });
+
+  it('un dato desconocido queda en null, nunca en cero', () => {
+    const rows = specRows('cpu', {
+      ...cpu,
+      cores: null,
+      threads: null,
+      baseClockGhz: null,
+      memoryTypes: null,
+      hasIntegratedGraphics: null,
+    });
+    expect(value(rows, 'cores')).toBeNull();
+    expect(value(rows, 'clock')).toBeNull();
+    expect(value(rows, 'memory')).toBeNull();
+    expect(value(rows, 'igpu')).toBeNull();
+  });
+
+  it('cubre las 8 categorías', () => {
+    const specs = {
+      motherboard: {
+        socket: 'AM5',
+        formFactor: 'ATX',
+        chipset: null,
+        ramType: 'DDR5',
+        ramSlots: 4,
+        ramMaxGb: 128,
+        m2Slots: 2,
+      },
+      ram: {
+        ramType: 'DDR5',
+        speedMhz: 6000,
+        modulesQty: 2,
+        capacityGb: 32,
+        formFactor: null,
+        casLatency: 30,
+      },
+      gpu: {
+        tdpW: 220,
+        lengthMm: 300,
+        slotWidth: 2.5,
+        interface: 'PCIe 4.0',
+        memoryGb: 12,
+        powerConnectors: null,
+      },
+      psu: { wattageW: 750, formFactor: 'ATX', efficiencyRating: '80+ Gold', modular: 'Full' },
+      case: {
+        formFactor: 'ATX',
+        supportedMbFormFactors: ['ATX'],
+        supportedPsuFormFactors: null,
+        maxGpuLengthMm: 350,
+        maxCoolerHeightMm: 165,
+      },
+      cooler: { heightMm: 155, waterCooled: false, radiatorMm: null, sockets: ['AM5', 'AM4'] },
+      storage: { storageType: 'SSD', interface: 'NVMe', capacityGb: 1000, formFactor: 'M.2-2280' },
+    };
+    for (const [category, data] of Object.entries(specs)) {
+      expect(specRows(category, data).length).toBeGreaterThan(2);
+    }
+    expect(value(specRows('storage', specs.storage), 'capacity')).toBe('1 TB');
+    expect(value(specRows('cooler', specs.cooler), 'sockets')).toBe('AM5, AM4');
+    expect(value(specRows('cooler', specs.cooler), 'type')).toBe('Aire');
+  });
+
+  it('sin datos o con categoría desconocida devuelve vacío', () => {
+    expect(specRows('cpu', undefined)).toEqual([]);
+    expect(specRows('fan', {})).toEqual([]);
+  });
+});
+
+describe('keyMetrics', () => {
+  it('toma hasta cuatro datos clave y omite los que faltan', () => {
+    const metrics = keyMetrics('cpu', {
+      socket: 'AM5',
+      tdpW: 65,
+      cores: null,
+      threads: null,
+      baseClockGhz: 3.8,
+      boostClockGhz: 5.1,
+      memoryTypes: ['DDR5'],
+      hasIntegratedGraphics: true,
+    });
+    expect(metrics.map((metric) => metric.key)).toEqual(['socket', 'clock', 'tdp']);
+  });
+
+  it('devuelve vacío sin datos', () => {
+    expect(keyMetrics('cpu', null)).toEqual([]);
+  });
+});
 
 describe('specPills', () => {
   const cpu = {

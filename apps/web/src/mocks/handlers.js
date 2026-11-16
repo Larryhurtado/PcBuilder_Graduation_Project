@@ -5,7 +5,7 @@
 // las pantallas no cambian, porque llaman a la API siempre por /api/v1.
 import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
-import { publicStores } from './data.js';
+import { components, publicStores } from './data.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
 const api = (path) => `*/api/v1${path}`;
@@ -19,6 +19,22 @@ export const handlers = [
   http.get(api('/offers'), ({ request }) =>
     HttpResponse.json(searchOffers(new URL(request.url).searchParams)),
   ),
+
+  // HU-08: ficha del componente con sus especificaciones (GET /components/{id})
+  http.get(api('/components/:id'), ({ params }) => {
+    const component = components.find((item) => item.id === params.id);
+    return component
+      ? HttpResponse.json(component)
+      : HttpResponse.json(
+          {
+            code: 'COMPONENT_NOT_FOUND',
+            message: 'Componente no encontrado.',
+            details: { componentId: params.id },
+            requestId: 'mock-request',
+          },
+          { status: 404 },
+        );
+  }),
 
   // HU-15: comercios verificados (GET /stores), con q, city y limit como en la API
   http.get(api('/stores'), ({ request }) => {
