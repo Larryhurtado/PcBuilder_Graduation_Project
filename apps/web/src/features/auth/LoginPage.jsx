@@ -9,8 +9,9 @@ import { PLATFORM_NAME } from '../../shared/config.js';
 import { login } from '../../shared/session/actions.js';
 import { homeForRole, safeNext } from '../../shared/session/redirect.js';
 import { useSession } from '../../shared/session/useSession.js';
-import Container from '../../shared/ui/Container.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
+import AuthShell from './AuthShell.jsx';
+import { FormAlert, PasswordField, SubmitButton, TextField } from './fields.jsx';
 
 /** Mismas reglas del contrato (loginBodySchema) con mensajes propios para los campos vacíos. */
 const formSchema = z.object({
@@ -22,38 +23,11 @@ const formSchema = z.object({
   password: z.string().min(1, 'Escribe tu contraseña').max(72, 'Máximo 72 caracteres'),
 });
 
-const inputClass =
-  'h-12 w-full rounded-xl border bg-surface pl-11 pr-3 text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-3';
-const okBorder =
-  'border-outline-variant focus:border-primary-container focus:ring-primary-container/25';
-const badBorder = 'border-incompatible focus:border-incompatible focus:ring-incompatible/25';
-
-function Field({ id, label, error, action, children }) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-space-sm">
-        <label htmlFor={id} className="text-label-md text-on-surface">
-          {label}
-        </label>
-        {action}
-      </div>
-      {children}
-      {error && (
-        <p id={`${id}-error`} className="flex items-center gap-1 text-body-sm text-incompatible">
-          <Icon name="error" className="text-[16px]" />
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 /** Ingresar (/ingresar): correo y contraseña contra POST /auth/login. */
 export default function LoginPage() {
   const { user } = useSession();
   const [params] = useSearchParams();
   const next = safeNext(params.get('next'));
-  const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState(null);
 
   const {
@@ -78,123 +52,27 @@ export default function LoginPage() {
     }
   };
 
+  // Conserva el destino al pasar entre ingresar y crear cuenta
+  const registerLink = next ? `/registro?next=${encodeURIComponent(next)}` : '/registro';
+
   return (
-    <Container className="flex justify-center py-space-xl md:py-space-2xl">
-      <div className="w-full max-w-md space-y-space-md">
-        <div className="overflow-hidden rounded-2xl bg-surface-container">
-          <div className="space-y-space-lg p-space-lg">
-            <div className="space-y-space-xs">
-              <h1 className="text-headline-lg-mobile text-on-surface md:text-headline-lg">
-                Ingresar a tu cuenta
-              </h1>
-              <p className="text-body-md text-on-surface-variant">
-                Accede para guardar tus armados y gestionar tu cuenta.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-space-md">
-              <Field id="email" label="Correo electrónico" error={errors.email?.message}>
-                <div className="relative">
-                  <Icon
-                    name="mail"
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline"
-                  />
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder="tucorreo@ejemplo.com"
-                    aria-invalid={Boolean(errors.email)}
-                    aria-describedby={errors.email ? 'email-error' : undefined}
-                    className={`${inputClass} ${errors.email ? badBorder : okBorder}`}
-                    {...register('email')}
-                  />
-                </div>
-              </Field>
-
-              <Field
-                id="password"
-                label="Contraseña"
-                error={errors.password?.message}
-                action={
-                  <Link
-                    to="/recuperar"
-                    className="inline-flex min-h-11 items-center text-label-sm text-primary hover:underline md:min-h-0"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Link>
-                }
-              >
-                <div className="relative">
-                  <Icon
-                    name="lock"
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline"
-                  />
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    aria-invalid={Boolean(errors.password)}
-                    aria-describedby={errors.password ? 'password-error' : undefined}
-                    className={`${inputClass} pr-12 ${errors.password ? badBorder : okBorder}`}
-                    {...register('password')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((visible) => !visible)}
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    aria-pressed={showPassword}
-                    className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-outline transition-colors hover:text-on-surface"
-                  >
-                    <Icon
-                      name={showPassword ? 'visibility_off' : 'visibility'}
-                      className="text-[20px]"
-                    />
-                  </button>
-                </div>
-              </Field>
-
-              {serverError && (
-                <p
-                  role="alert"
-                  className="flex items-start gap-space-xs rounded-xl bg-[color-mix(in_srgb,var(--color-incompatible)_10%,var(--color-surface-container))] p-space-sm text-body-sm text-on-surface"
-                >
-                  <Icon name="error" className="mt-0.5 text-[18px] text-incompatible" />
-                  {serverError}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary-container text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isSubmitting ? (
-                  'Ingresando…'
-                ) : (
-                  <>
-                    Ingresar
-                    <Icon name="arrow_forward" className="text-[18px]" />
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          <div className="space-y-1 bg-surface-container-low p-space-md text-center">
-            <p className="text-body-sm text-on-surface-variant">¿Aún no tienes una cuenta?</p>
-            <Link
-              to="/registro"
-              className="inline-flex min-h-11 items-center gap-1 text-label-md font-semibold text-primary hover:underline"
-            >
-              Crear cuenta gratis
-              <Icon name="arrow_forward" className="text-[16px]" />
-            </Link>
-          </div>
-        </div>
-
-        <p className="px-space-sm text-center text-body-sm text-on-surface-variant">
+    <AuthShell
+      title="Ingresar a tu cuenta"
+      description="Accede para guardar tus armados y gestionar tu cuenta."
+      footer={
+        <>
+          <p className="text-body-sm text-on-surface-variant">¿Aún no tienes una cuenta?</p>
+          <Link
+            to={registerLink}
+            className="inline-flex min-h-11 items-center gap-1 text-label-md font-semibold text-primary hover:underline"
+          >
+            Crear cuenta gratis
+            <Icon name="arrow_forward" className="text-[16px]" />
+          </Link>
+        </>
+      }
+      note={
+        <>
           Al ingresar aceptas el tratamiento de tus datos según la política de privacidad (Ley 1581
           de 2012).{' '}
           <Link to="/terminos" className="underline hover:text-on-surface">
@@ -204,8 +82,39 @@ export default function LoginPage() {
           <Link to="/privacidad" className="underline hover:text-on-surface">
             Privacidad
           </Link>
-        </p>
-      </div>
-    </Container>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-space-md">
+        <TextField
+          id="email"
+          label="Correo electrónico"
+          icon="mail"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="tucorreo@ejemplo.com"
+          error={errors.email?.message}
+          registration={register('email')}
+        />
+        <PasswordField
+          autoComplete="current-password"
+          error={errors.password?.message}
+          registration={register('password')}
+          action={
+            <Link
+              to="/recuperar"
+              className="inline-flex min-h-11 items-center text-label-sm text-primary hover:underline md:min-h-0"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          }
+        />
+        <FormAlert>{serverError}</FormAlert>
+        <SubmitButton busy={isSubmitting} busyLabel="Ingresando…">
+          Ingresar
+        </SubmitButton>
+      </form>
+    </AuthShell>
   );
 }
