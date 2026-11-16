@@ -6,6 +6,7 @@ import { pinoHttp } from 'pino-http';
 import { errorHandler, notFoundHandler } from './http/error-handler.js';
 import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
+import { createLocalStorage } from './kernel/storage.js';
 import { createAnalyticsModule } from './modules/analytics/index.js';
 import { createCatalogModule } from './modules/catalog/index.js';
 import { createIdentityModule } from './modules/identity/index.js';
@@ -64,13 +65,25 @@ export function createApp({ config, pool = null, logger } = {}) {
       auth: identity.middleware,
     });
     api.use(stores.router);
-    const catalog = createCatalogModule({ db });
+    const catalog = createCatalogModule({ db, auth: identity.middleware });
     api.use(catalog.router);
-    const offers = createOffersModule({ db, catalog: catalog.facade });
+    const storage = createLocalStorage({ dir: config.STORAGE_DIR });
+    const offers = createOffersModule({
+      db,
+      catalog: catalog.facade,
+      stores: stores.facade,
+      storage,
+      auth: identity.middleware,
+    });
     api.use(offers.router);
+    api.use(offers.sellerRouter);
+    // Fotos subidas (almacenamiento local): se sirven como archivos estáticos, sin adivinar tipos
+    app.use('/storage', express.static(storage.root, { index: false, dotfiles: 'deny' }));
     const analytics = createAnalyticsModule({
       db,
       offers: offers.facade,
+      stores: stores.facade,
+      auth: identity.middleware,
       secret: config.ANALYTICS_SECRET,
     });
     api.use(analytics.router);

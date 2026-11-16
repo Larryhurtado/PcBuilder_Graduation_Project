@@ -22,6 +22,26 @@ export function createAnalyticsRepository(db) {
       return rowCount > 0;
     },
 
+    /**
+     * Vistas y clics por día (hora de Colombia) de un comercio entre dos días, ambos incluidos.
+     * Los días sin eventos no aparecen: el servicio los rellena con ceros.
+     */
+    async dailyCounts(storeId, fromDay, toDay) {
+      const { rows } = await db.query(
+        `SELECT (occurred_at AT TIME ZONE 'America/Bogota')::date::text AS day,
+                count(*) FILTER (WHERE event_type = 'view')::int AS views,
+                count(*) FILTER (WHERE event_type = 'whatsapp_click')::int AS whatsapp_clicks
+           FROM analytics.offer_events
+          WHERE store_id = $1
+            AND occurred_at >= $2::date::timestamp AT TIME ZONE 'America/Bogota'
+            AND occurred_at <  ($3::date + 1)::timestamp AT TIME ZONE 'America/Bogota'
+          GROUP BY 1
+          ORDER BY 1`,
+        [storeId, fromDay, toDay],
+      );
+      return rows;
+    },
+
     /** Crea (si no existe) la partición mensual de la tabla de eventos que contiene `date`. */
     async ensureMonthPartition(date) {
       await db.query('SELECT analytics.ensure_month_partition($1::date)', [date]);

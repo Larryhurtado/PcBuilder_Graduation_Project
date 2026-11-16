@@ -16,6 +16,8 @@ const schema = z
     // Secreto con el que se firman los tokens de acceso. Sin él se genera uno al arrancar
     // (las sesiones no sobreviven a un reinicio); en producción es obligatorio.
     JWT_SECRET: z.string().min(32).optional(),
+    // Carpeta donde se guardan las fotos subidas. Por defecto `storage/` en la raíz del repositorio.
+    STORAGE_DIR: z.string().min(1).optional(),
   })
   .refine((env) => env.NODE_ENV !== 'production' || env.JWT_SECRET, {
     path: ['JWT_SECRET'],

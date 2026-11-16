@@ -1,4 +1,4 @@
-import { eventBodySchema } from '@hw/contracts';
+import { analyticsSummaryQuerySchema, eventBodySchema } from '@hw/contracts';
 import express, { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { validate } from '../../http/validate.js';
@@ -28,7 +28,7 @@ function parseTextBody(req, _res, next) {
  * Ruta pública de registro de eventos (cuelga de /api/v1). Límite de tasa moderado por IP.
  * @param {{ service: { record: Function }, rateLimitOptions?: { windowMs?: number, limit?: number } }} deps
  */
-export function createAnalyticsRouter({ service, rateLimitOptions = {} }) {
+export function createAnalyticsRouter({ service, auth, rateLimitOptions = {} }) {
   const router = Router();
 
   const limiter = rateLimit({
@@ -52,6 +52,19 @@ export function createAnalyticsRouter({ service, rateLimitOptions = {} }) {
       res.status(204).end();
     },
   );
+
+  // Resumen del panel del vendedor (HU-17)
+  if (auth) {
+    router.get(
+      '/seller/analytics/summary',
+      auth.requireAuth,
+      auth.requireRole('seller'),
+      validate({ query: analyticsSummaryQuerySchema }),
+      async (req, res) => {
+        res.json(await service.getSellerSummary(req.user.userId, req.valid.query));
+      },
+    );
+  }
 
   return router;
 }
