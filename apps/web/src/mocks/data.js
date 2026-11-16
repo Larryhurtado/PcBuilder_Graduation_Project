@@ -5,21 +5,17 @@
 export const stores = [
   {
     id: '11111111-1111-4111-8111-111111111111',
-    legalName: 'TecnoPasarela Cali S.A.S.',
-    tradeName: 'TecnoPasarela Cali',
     name: 'TecnoPasarela Cali',
     description: 'Ensamble a medida, componentes de gama alta y estaciones de trabajo.',
     city: 'Cali',
     department: 'Valle del Cauca',
     commercialCenter: 'C.C. Pasarela',
     address: 'Local 214, C.C. Pasarela',
+    logoUrl: null,
     whatsappE164: '+573000000001',
-    isVerified: true,
   },
   {
     id: '22222222-2222-4222-8222-222222222222',
-    legalName: 'Unilago Gaming S.A.S.',
-    tradeName: 'Unilago Gaming',
     name: 'Unilago Gaming',
     description:
       'Procesadores de última generación, refrigeración líquida y memorias de alto rendimiento.',
@@ -27,8 +23,8 @@ export const stores = [
     department: 'Bogotá D.C.',
     commercialCenter: 'C.C. Unilago',
     address: 'Local 305, C.C. Unilago',
+    logoUrl: null,
     whatsappE164: '+573000000002',
-    isVerified: true,
   },
 ];
 
@@ -407,3 +403,9 @@ export function findOffer(displayNamePart, storeName) {
   if (!offer) throw new Error(`No hay oferta simulada para "${displayNamePart}"`);
   return offer;
 }
+
+/** Comercios verificados como los devuelve GET /stores: lo público de cada tienda y su cantidad de ofertas. */
+export const publicStores = stores.map((store) => ({
+  ...store,
+  offersCount: offers.filter((offer) => offer.store.id === store.id).length,
+}));

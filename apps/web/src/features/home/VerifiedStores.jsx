@@ -3,13 +3,13 @@ import Container from '../../shared/ui/Container.jsx';
 import ErrorNotice from '../../shared/ui/ErrorNotice.jsx';
 import SectionHeader from '../../shared/ui/SectionHeader.jsx';
 import StoreCard, { StoreCardSkeleton } from '../../shared/ui/StoreCard.jsx';
-import { useVerifiedStores } from './queries.js';
+import { useStores } from '../stores/queries.js';
 
 const grid = 'grid grid-cols-1 gap-space-lg lg:grid-cols-3';
 
 /** Comercios verificados. La verificación confirma que el negocio existe; no garantiza sus ofertas. */
 export default function VerifiedStores() {
-  const { data, isPending, isError, error, refetch } = useVerifiedStores(3);
+  const { data, isPending, isError, error, refetch } = useStores({ limit: 3 });
 
   return (
     <Container as="section" aria-labelledby="comercios-title" className="pb-space-2xl">
