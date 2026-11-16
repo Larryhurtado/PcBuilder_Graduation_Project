@@ -10,14 +10,14 @@ import { createStoresService } from './service.js';
  *   auth: { requireAuth: Function, requireRole: Function } }} deps
  *   `identity` y `verification` son las fachadas de esos módulos; `auth` son sus middlewares.
  */
-export function createStoresModule({ db, identity, verification, auth }) {
+export function createStoresModule({ db, identity, verification, auth, rateLimitOptions }) {
   const service = createStoresService({
     repository: createStoresRepository(db),
     identity,
     verification,
   });
   return {
-    router: createStoresRouter({ service, auth }),
+    router: createStoresRouter({ service, auth, rateLimitOptions }),
     facade: { getStoreByOwner: service.getStoreByOwner },
   };
 }

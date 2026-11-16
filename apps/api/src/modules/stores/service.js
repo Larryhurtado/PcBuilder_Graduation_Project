@@ -22,6 +22,22 @@ export function toStore(row) {
   };
 }
 
+/** Lo que se muestra de un comercio verificado: nunca la razón social ni el NIT. */
+function toPublicStore(row) {
+  return {
+    id: row.id,
+    name: row.tradeName,
+    description: row.description ?? null,
+    logoUrl: logoUrl(row.logoKey),
+    department: row.department ?? null,
+    city: row.city ?? null,
+    commercialCenter: row.commercialCenter ?? null,
+    address: row.address ?? null,
+    whatsappE164: row.whatsappE164 ?? null,
+    offersCount: row.offersCount,
+  };
+}
+
 /**
  * @param {{
  *   repository: ReturnType<import('./repository.js').createStoresRepository>,
@@ -61,19 +77,14 @@ export function createStoresService({ repository, identity, verification }) {
 
     /** Directorio público: solo comercios verificados y solo datos de contacto comercial. */
     async listPublic(query) {
-      const rows = await repository.listVerified(query);
-      return rows.map((row) => ({
-        id: row.id,
-        name: row.tradeName,
-        description: row.description ?? null,
-        logoUrl: logoUrl(row.logoKey),
-        department: row.department ?? null,
-        city: row.city ?? null,
-        commercialCenter: row.commercialCenter ?? null,
-        address: row.address ?? null,
-        whatsappE164: row.whatsappE164 ?? null,
-        offersCount: row.offersCount,
-      }));
+      return (await repository.listVerified(query)).map(toPublicStore);
+    },
+
+    /** Un comercio verificado. Inexistente, sin verificar o suspendido dan el mismo 404. */
+    async getPublic(id) {
+      const row = await repository.findVerifiedById(id);
+      if (!row) throw new AppError('STORE_NOT_FOUND');
+      return toPublicStore(row);
     },
 
     async getStore(userId) {

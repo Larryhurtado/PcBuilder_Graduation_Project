@@ -18,6 +18,7 @@ export {
   storeResponseSchema,
   convertResponseSchema,
   publicStoresQuerySchema,
+  publicStoreParamsSchema,
   publicStoreSchema,
   publicStoresResponseSchema,
   verificationStatusSchema,
