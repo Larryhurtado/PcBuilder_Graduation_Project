@@ -139,7 +139,7 @@ Paquetes del monorepo que el frontend importa:
 
 ## 7. Datos del catálogo: forma de un componente
 
-**[Propuesto, basado en la base de datos ya construida]** Las especificaciones llegan en un objeto `specs` **plano por categoría**, en camelCase. Un dato desconocido es `null`. Los valores de los ejemplos de este documento son ilustrativos, salvo los de la sección 13.
+**[Implementado: esquema `componentSchema` en `@hw/contracts`; `GET /components/{id}` y `GET /catalog/search?q=` ya responden con esta forma]** Las especificaciones llegan en un objeto `specs` **plano por categoría**, en camelCase. Un dato desconocido es `null`. Los valores de los ejemplos de este documento son ilustrativos, salvo los de la sección 13.
 
 ```jsonc
 {
