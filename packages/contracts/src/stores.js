@@ -71,6 +71,9 @@ export const publicStoresQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(12),
 });
 
+/** GET /stores/{id} */
+export const publicStoreParamsSchema = z.object({ id: z.guid() });
+
 /** Lo que se muestra de un comercio verificado: nunca la razón social ni el NIT. */
 export const publicStoreSchema = z.object({
   id: z.guid(),
