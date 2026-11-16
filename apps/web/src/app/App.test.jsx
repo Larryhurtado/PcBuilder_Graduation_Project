@@ -13,7 +13,8 @@ describe('App', () => {
   it.each([
     ['/armador', 'Arma tu PC'],
     ['/catalogo', 'Catálogo de componentes y ofertas'],
-    ['/vendedor/verificacion', 'Estado de verificación'],
+    ['/terminos', 'Términos y condiciones'],
+    ['/ingresar', 'Ingresar a tu cuenta'],
     ['/atribucion', 'Atribución de datos'],
   ])('la ruta %s existe y muestra su pantalla', (path, title) => {
     renderApp(path);
