@@ -12,6 +12,12 @@ export function buildWhatsAppMessage({ productName, priceCop, platformName = PLA
   return `Hola, vi tu publicación de ${productName}${priceText} en ${platformName}. ¿Sigue disponible?`;
 }
 
+/** Número sin el "+" si es un E.164 válido; null si no (la interfaz deshabilita el botón). */
+function validDigits(phoneE164) {
+  if (typeof phoneE164 !== 'string' || !/^\+[1-9]\d{7,14}$/.test(phoneE164.trim())) return null;
+  return phoneE164.trim().slice(1);
+}
+
 /**
  * Enlace https://wa.me/<número sin +>?text=<mensaje codificado>. No usa la API de WhatsApp.
  * Devuelve null si el número no es un E.164 válido, para que la interfaz deshabilite el botón.
@@ -19,7 +25,20 @@ export function buildWhatsAppMessage({ productName, priceCop, platformName = PLA
  * @returns {string | null}
  */
 export function buildWhatsAppUrl({ phoneE164, ...message }) {
-  if (typeof phoneE164 !== 'string' || !/^\+[1-9]\d{7,14}$/.test(phoneE164.trim())) return null;
-  const digits = phoneE164.trim().slice(1);
+  const digits = validDigits(phoneE164);
+  if (!digits) return null;
   return `https://wa.me/${digits}?text=${encodeURIComponent(buildWhatsAppMessage(message))}`;
+}
+
+/**
+ * Enlace de consulta general a una tienda (sin un producto concreto):
+ * "Hola, vi {tienda} en {plataforma}. Quisiera consultar por sus componentes."
+ * @param {{ phoneE164: string | null | undefined, storeName: string, platformName?: string }} data
+ * @returns {string | null}
+ */
+export function buildStoreWhatsAppUrl({ phoneE164, storeName, platformName = PLATFORM_NAME }) {
+  const digits = validDigits(phoneE164);
+  if (!digits) return null;
+  const text = `Hola, vi ${storeName} en ${platformName}. Quisiera consultar por sus componentes.`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
