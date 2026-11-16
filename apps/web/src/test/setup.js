@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
+import { resetMockAuth } from '../mocks/auth.js';
 import { server } from '../mocks/node.js';
+import { resetSession } from '../shared/session/actions.js';
 
 // jsdom no implementa <dialog>: se simula lo mínimo (open, showModal, close y el evento close).
 if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {
@@ -19,6 +21,8 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
+  resetMockAuth();
+  resetSession();
   cleanup();
   sessionStorage.clear();
 });

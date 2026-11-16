@@ -5,12 +5,16 @@
 // las pantallas no cambian, porque llaman a la API siempre por /api/v1.
 import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
+import { authHandlers } from './auth.js';
 import { components, publicStores } from './data.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
 const api = (path) => `*/api/v1${path}`;
 
 export const handlers = [
+  // Sesión: login, refresco, cierre y usuario actual
+  ...authHandlers,
+
   // Catálogo y ofertas con filtros, orden, paginación y filtros técnicos del motor (HU-02, 06, 09)
   http.get(api('/offers/featured'), ({ request }) => {
     const limit = Number(new URL(request.url).searchParams.get('limit')) || 8;

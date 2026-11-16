@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { PLATFORM_NAME } from '../shared/config.js';
+import { logout } from '../shared/session/actions.js';
 import { useSession } from '../shared/session/useSession.js';
 import CategoryIcon from '../shared/ui/CategoryIcon.jsx';
 import Container from '../shared/ui/Container.jsx';
@@ -67,13 +68,25 @@ export default function Navbar() {
         <div className="flex shrink-0 items-center gap-space-sm">
           <SearchForm shortcut className="hidden sm:flex" inputClassName="sm:w-48 lg:w-64" />
           {user ? (
-            <Link
-              to="/cuenta"
-              aria-label="Mi cuenta"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-on-primary"
-            >
-              <Icon name="person" className="text-[18px]" />
-            </Link>
+            <>
+              <Link
+                to="/cuenta"
+                aria-label="Mi cuenta"
+                title={user.fullName}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-on-primary"
+              >
+                <Icon name="person" className="text-[18px]" />
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                className="hidden h-10 w-10 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface md:flex"
+              >
+                <Icon name="logout" className="text-[20px]" />
+              </button>
+            </>
           ) : (
             <Link
               to="/ingresar"
@@ -109,6 +122,19 @@ export default function Navbar() {
                 </NavLink>
               ))}
             </nav>
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  logout();
+                }}
+                className="flex h-11 items-center gap-space-sm rounded-xl px-space-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+              >
+                <Icon name="logout" className="text-[20px]" />
+                Cerrar sesión
+              </button>
+            )}
           </Container>
         </div>
       )}
