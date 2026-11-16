@@ -36,6 +36,21 @@ export function formatLocation({ city, department } = {}) {
 }
 
 /**
+ * Fecha larga en español ("12 de octubre de 2026"); devuelve null si no es una fecha válida.
+ * @param {string | null | undefined} iso fecha ISO 8601
+ */
+export function formatDate(iso) {
+  const date = iso ? new Date(iso) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/**
  * Garantía de la oferta en meses: "Garantía 12 meses", "Garantía 1 mes" o "Sin garantía".
  * @param {number | null | undefined} months
  */

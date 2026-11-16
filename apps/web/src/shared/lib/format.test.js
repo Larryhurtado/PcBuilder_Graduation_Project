@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { formatCOP, formatCOPAmount, formatLocation, formatWarranty } from './format.js';
+import {
+  formatCOP,
+  formatCOPAmount,
+  formatDate,
+  formatLocation,
+  formatWarranty,
+} from './format.js';
+
+describe('formatDate', () => {
+  it('escribe la fecha larga en español, sin correrse de día por la zona horaria', () => {
+    expect(formatDate('2026-10-12T00:00:00.000Z')).toBe('12 de octubre de 2026');
+  });
+
+  it('devuelve null si no es una fecha válida', () => {
+    expect(formatDate('no-es-fecha')).toBeNull();
+    expect(formatDate(null)).toBeNull();
+    expect(formatDate(undefined)).toBeNull();
+  });
+});
 
 describe('formatWarranty', () => {
   it('dice la garantía en meses, con singular y sin garantía', () => {

@@ -19,6 +19,24 @@ export function FavoriteButton({ name, className = '' }) {
 }
 
 /**
+ * Compartir la ficha: llega más adelante, así que por ahora se ve deshabilitado.
+ * @param {{ name: string, className?: string }} props nombre de la pieza, para el nombre accesible
+ */
+export function ShareButton({ name, className = '' }) {
+  return (
+    <button
+      type="button"
+      disabled
+      aria-label={`Compartir ${name} (próximamente)`}
+      title="Compartir: próximamente"
+      className={`flex h-11 w-11 shrink-0 cursor-not-allowed items-center justify-center rounded-xl text-outline opacity-60 ${className}`}
+    >
+      <Icon name="share" className="text-[20px]" />
+    </button>
+  );
+}
+
+/**
  * "Al ensamble" (HU-11): agrega la pieza al armador, reemplazando la de su categoría. Si esa misma
  * oferta ya está en el armado se muestra como tal.
  * @param {{ offer: { component: { displayName: string } }, inBuild: boolean, replaces: boolean, onAdd: (offer: any) => void, className?: string }} props
