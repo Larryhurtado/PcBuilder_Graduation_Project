@@ -5,7 +5,7 @@
 // las pantallas no cambian, porque llaman a la API siempre por /api/v1.
 import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
-import { stores } from './data.js';
+import { publicStores } from './data.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
 const api = (path) => `*/api/v1${path}`;
@@ -20,14 +20,20 @@ export const handlers = [
     HttpResponse.json(searchOffers(new URL(request.url).searchParams)),
   ),
 
-  // HU-15: tiendas verificadas (solo las verificadas aparecen en lo público). GET /stores aún no
-  // existe en la API real.
+  // HU-15: comercios verificados (GET /stores), con q, city y limit como en la API
   http.get(api('/stores'), ({ request }) => {
-    const limit = Number(new URL(request.url).searchParams.get('limit')) || stores.length;
-    return HttpResponse.json({
-      items: stores.filter((store) => store.isVerified).slice(0, limit),
-      nextCursor: null,
-    });
+    const params = new URL(request.url).searchParams;
+    const q = params.get('q')?.toLowerCase();
+    const city = params.get('city')?.toLowerCase();
+    const limit = Number(params.get('limit')) || 12;
+    const items = publicStores
+      .filter((store) => !city || store.city?.toLowerCase() === city)
+      .filter(
+        (store) =>
+          !q || `${store.name} ${store.description ?? ''} ${store.city}`.toLowerCase().includes(q),
+      )
+      .slice(0, limit);
+    return HttpResponse.json({ items });
   }),
 
   // HU-08: vistas y clics a WhatsApp

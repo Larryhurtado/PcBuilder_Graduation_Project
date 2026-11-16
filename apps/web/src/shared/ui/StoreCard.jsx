@@ -3,8 +3,9 @@ import { formatLocation } from '../lib/format.js';
 import Icon from './Icon.jsx';
 
 /**
- * Tarjeta de comercio verificado (inicio, directorio).
- * @param {{ store: import('zod').infer<typeof import('../api/schemas.js').storeCardSchema> }} props
+ * Tarjeta de comercio verificado (inicio, directorio). GET /stores solo devuelve comercios
+ * verificados, así que la insignia se muestra siempre.
+ * @param {{ store: import('zod').infer<typeof import('@hw/contracts').publicStoreSchema> }} props
  */
 export default function StoreCard({ store }) {
   const location = [formatLocation(store), store.address].filter(Boolean).join(' • ');
@@ -13,7 +14,7 @@ export default function StoreCard({ store }) {
     <article className="flex flex-col justify-between rounded-2xl bg-surface-container p-6">
       <div>
         <div className="mb-space-sm flex items-center justify-between gap-space-sm">
-          <h3 className="text-headline-md text-on-surface">{store.tradeName}</h3>
+          <h3 className="text-headline-md text-on-surface">{store.name}</h3>
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-variant text-secondary">
             <Icon name="store" className="text-[18px]" />
           </span>
@@ -24,14 +25,12 @@ export default function StoreCard({ store }) {
           <span>{location}</span>
         </p>
 
-        {store.isVerified && (
-          <div className="mb-space-md flex flex-wrap gap-space-xs">
-            <span className="flex items-center gap-1 rounded-lg bg-surface-container-high px-2.5 py-1 text-label-sm text-compatible">
-              <Icon name="verified" className="text-[14px]" />
-              <span>Comercio Verificado</span>
-            </span>
-          </div>
-        )}
+        <div className="mb-space-md flex flex-wrap gap-space-xs">
+          <span className="flex items-center gap-1 rounded-lg bg-surface-container-high px-2.5 py-1 text-label-sm text-compatible">
+            <Icon name="verified" className="text-[14px]" />
+            <span>Comercio Verificado</span>
+          </span>
+        </div>
 
         {store.description && (
           <div className="mb-space-lg rounded-xl bg-surface-container-low p-space-sm">

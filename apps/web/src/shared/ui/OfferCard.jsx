@@ -1,14 +1,10 @@
 import { Link } from 'react-router';
 import { formatCOP } from '../lib/format.js';
 import { specHighlight, specLine } from '../lib/specs.js';
-import CategoryIcon from './CategoryIcon.jsx';
+import ConditionChip from './ConditionChip.jsx';
 import Icon from './Icon.jsx';
+import OfferImage from './OfferImage.jsx';
 import WhatsAppLink from './WhatsAppLink.jsx';
-
-const conditionChip = {
-  new: { label: 'Nuevo', className: 'bg-surface-variant text-on-surface' },
-  used: { label: 'Usado', className: 'bg-surface-variant font-semibold text-tertiary' },
-};
 
 /**
  * Tarjeta de oferta (inicio, catálogo, ficha y perfil de tienda). Toda la tarjeta lleva a la ficha
@@ -17,7 +13,6 @@ const conditionChip = {
  */
 export default function OfferCard({ offer }) {
   const { component, store } = offer;
-  const chip = conditionChip[offer.condition];
   const line = specLine(component.category, component.specs);
   const highlight = specHighlight(component.category, component.specs);
   const place = store.commercialCenter ? `${store.city} (${store.commercialCenter})` : store.city;
@@ -25,28 +20,11 @@ export default function OfferCard({ offer }) {
   return (
     <article className="relative flex flex-col justify-between rounded-2xl bg-surface-container p-5">
       <div className="mb-space-md flex items-center justify-between">
-        <span className={`rounded-full px-2.5 py-0.5 text-label-sm ${chip.className}`}>
-          {chip.label}
-        </span>
+        <ConditionChip condition={offer.condition} />
       </div>
 
       <div className="flex flex-1 flex-col">
-        <div className="relative mb-space-md flex h-36 w-full items-center justify-center overflow-hidden rounded-xl bg-surface-container-low p-3">
-          {offer.coverImageUrl ? (
-            <img
-              src={offer.coverImageUrl}
-              alt=""
-              loading="lazy"
-              className="h-full w-full object-contain"
-            />
-          ) : (
-            <CategoryIcon
-              category={component.category}
-              className="h-14 w-14 text-outline-variant"
-            />
-          )}
-        </div>
-
+        <OfferImage offer={offer} className="mb-space-md h-36" />
         <h3 className="text-headline-sm leading-snug text-on-surface">
           <Link
             to={`/producto/${component.id}`}

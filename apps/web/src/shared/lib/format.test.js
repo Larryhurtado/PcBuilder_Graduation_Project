@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { formatCOP, formatCOPAmount, formatLocation } from './format.js';
+import { formatCOP, formatCOPAmount, formatLocation, formatWarranty } from './format.js';
+
+describe('formatWarranty', () => {
+  it('dice la garantía en meses, con singular y sin garantía', () => {
+    expect(formatWarranty(12)).toBe('Garantía 12 meses');
+    expect(formatWarranty(1)).toBe('Garantía 1 mes');
+    expect(formatWarranty(0)).toBe('Sin garantía');
+  });
+
+  it('un dato inválido se trata como sin garantía, no como cero meses de garantía', () => {
+    expect(formatWarranty(null)).toBe('Sin garantía');
+    expect(formatWarranty(undefined)).toBe('Sin garantía');
+    expect(formatWarranty(Number.NaN)).toBe('Sin garantía');
+  });
+});
 
 describe('formatCOPAmount', () => {
   it('agrupa los miles con punto y sin decimales', () => {

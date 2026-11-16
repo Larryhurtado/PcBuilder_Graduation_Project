@@ -75,6 +75,56 @@ export function specHighlight(category, specs) {
   return highlightBuilders[category](specs);
 }
 
+const watts = (value) => (present(value) ? `TDP ${value} W` : null);
+const mm = (label, value) => (present(value) ? `${label} ${value} mm` : null);
+
+const pillBuilders = {
+  cpu: (s) => [
+    watts(s.tdpW),
+    Array.isArray(s.memoryTypes) ? s.memoryTypes.join(' / ') : null,
+    s.hasIntegratedGraphics === true
+      ? 'Gráficos integrados'
+      : s.hasIntegratedGraphics === false
+        ? 'Requiere GPU'
+        : null,
+  ],
+  motherboard: (s) => [s.formFactor, s.ramType, present(s.m2Slots) ? `${s.m2Slots} M.2` : null],
+  ram: (s) => [
+    present(s.capacityGb) ? `${s.capacityGb} GB` : null,
+    present(s.speedMhz) ? `${s.speedMhz} MHz` : null,
+    present(s.casLatency) ? `CL${s.casLatency}` : null,
+  ],
+  gpu: (s) => [
+    watts(s.tdpW),
+    mm('Longitud', s.lengthMm),
+    present(s.memoryGb) ? `${s.memoryGb} GB` : null,
+  ],
+  psu: (s) => [s.efficiencyRating, s.modular, s.formFactor],
+  case: (s) => [
+    s.formFactor,
+    mm('GPU máx.', s.maxGpuLengthMm),
+    mm('Disipador máx.', s.maxCoolerHeightMm),
+  ],
+  cooler: (s) => [
+    mm('Altura', s.heightMm),
+    s.waterCooled === true ? 'Líquida' : s.waterCooled === false ? 'Aire' : null,
+    present(s.radiatorMm) ? `Radiador ${s.radiatorMm} mm` : null,
+  ],
+  storage: (s) => [s.storageType, s.interface, present(s.capacityGb) ? gb(s.capacityGb) : null],
+};
+
+/**
+ * Hasta tres etiquetas cortas con los datos técnicos más útiles de la pieza (TDP, memoria,
+ * longitud…). Los datos desconocidos (`null`) no aparecen.
+ * @param {string} category
+ * @param {Record<string, any> | null | undefined} specs
+ * @returns {string[]}
+ */
+export function specPills(category, specs) {
+  if (!specs || !pillBuilders[category]) return [];
+  return pillBuilders[category](specs).filter(present).slice(0, 3);
+}
+
 /** Nombre en español de cada categoría (singular y para listados). */
 export const categoryLabels = {
   cpu: 'Procesadores',

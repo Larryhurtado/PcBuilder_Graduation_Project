@@ -12,7 +12,7 @@ describe('App', () => {
 
   it.each([
     ['/armador', 'Arma tu PC'],
-    ['/catalogo', 'Catálogo'],
+    ['/catalogo', 'Catálogo de componentes y ofertas'],
     ['/producto/abc', 'Ficha técnica'],
     ['/vendedor/verificacion', 'Estado de verificación'],
     ['/atribucion', 'Atribución de datos'],
