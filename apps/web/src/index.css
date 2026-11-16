@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens de diseño: aquí se pasan los colores, tipografías y espaciados de las pantallas de Stitch.
+ * Ejemplo:
+ *
+ * @theme {
+ *   --color-primary: #1d4ed8;
+ *   --font-sans: 'Inter', system-ui, sans-serif;
+ * }
+ *
+ * Puntos de quiebre del proyecto: 360 (móvil), 768 (tableta) y 1280 px (escritorio).
+ */

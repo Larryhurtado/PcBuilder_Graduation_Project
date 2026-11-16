@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+storage
+docs
+db
+package-lock.json
+apps/web/public/mockServiceWorker.js

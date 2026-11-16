@@ -1,0 +1,39 @@
+{
+  "name": "pcbuilder-graduation-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agregador y Validador de Hardware - trabajo de grado, UNIAJC",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:api": "npm run dev -w @hw/api",
+    "dev:web": "npm run dev -w @hw/web",
+    "test": "npm test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "vitest": "^5.1.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "apps\\web\\public"
+    ]
+  }
+}
