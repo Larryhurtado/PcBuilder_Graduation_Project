@@ -17,6 +17,9 @@ export {
   storeSchema,
   storeResponseSchema,
   convertResponseSchema,
+  publicStoresQuerySchema,
+  publicStoreSchema,
+  publicStoresResponseSchema,
   verificationStatusSchema,
 } from './stores.js';
 export {

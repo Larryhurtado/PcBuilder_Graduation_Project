@@ -1,4 +1,4 @@
-import { convertBodySchema, updateStoreBodySchema } from '@hw/contracts';
+import { convertBodySchema, publicStoresQuerySchema, updateStoreBodySchema } from '@hw/contracts';
 import { Router } from 'express';
 import { validate } from '../../http/validate.js';
 
@@ -10,6 +10,11 @@ import { validate } from '../../http/validate.js';
 export function createStoresRouter({ service, auth }) {
   const router = Router();
   const { requireAuth, requireRole } = auth;
+
+  // Directorio público de comercios verificados ("Comercios verificados" del inicio)
+  router.get('/stores', validate({ query: publicStoresQuerySchema }), async (req, res) => {
+    res.json({ items: await service.listPublic(req.valid.query) });
+  });
 
   router.post(
     '/seller/convert',

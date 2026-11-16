@@ -122,7 +122,9 @@ export function constraintsFor(category, build = {}, rawParams) {
 export function evaluateCandidate(category, specs, build = {}, rawParams) {
   const slot = slotForCategory(category);
   const { results } = evaluate({ ...build, [slot]: specs }, rawParams);
-  const relevant = results.filter((result) => result.parts.includes(slot));
+  // Las reglas nombran las piezas por categoría ('case'), no por ranura ('pcCase'): comparar con
+  // la ranura dejaba a toda caja candidata sin reglas y siempre daba "ok".
+  const relevant = results.filter((result) => result.parts.includes(category));
   const status = relevant.some((r) => r.status === STATUS.FAIL)
     ? STATUS.FAIL
     : relevant.some((r) => r.status === STATUS.UNKNOWN)

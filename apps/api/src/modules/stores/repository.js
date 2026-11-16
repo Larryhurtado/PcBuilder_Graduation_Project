@@ -1,3 +1,5 @@
+import { escapeLike } from '../../kernel/sql.js';
+
 const COLUMNS = `id, legal_name, trade_name, nit, description, logo_key, whatsapp_e164, department,
   city, address, commercial_center, latitude, longitude, opening_hours, is_verified`;
 
@@ -31,6 +33,37 @@ export function createStoresRepository(db) {
     async findById(id) {
       const { rows } = await db.query(`SELECT ${COLUMNS} FROM stores.stores WHERE id = $1`, [id]);
       return rows[0] ?? null;
+    },
+
+    /**
+     * Comercios verificados para el directorio público, con la cantidad de ofertas visibles
+     * (readmodel.public_offers, regla M-3). Primero los que tienen más ofertas.
+     */
+    async listVerified({ q, city, limit }) {
+      const where = ['s.is_verified'];
+      const params = [];
+      if (q) {
+        params.push(`%${escapeLike(q)}%`);
+        where.push(`s.trade_name ILIKE $${params.length}`);
+      }
+      if (city) {
+        params.push(city);
+        where.push(`lower(s.city) = lower($${params.length})`);
+      }
+      params.push(limit);
+      const { rows } = await db.query(
+        `SELECT s.id, s.trade_name, s.description, s.logo_key, s.department, s.city,
+                s.commercial_center, s.address, s.whatsapp_e164,
+                COALESCE(o.total, 0)::int AS offers_count
+           FROM stores.stores s
+           LEFT JOIN (SELECT store_id, count(*) AS total
+                        FROM readmodel.public_offers GROUP BY store_id) o ON o.store_id = s.id
+          WHERE ${where.join(' AND ')}
+          ORDER BY COALESCE(o.total, 0) DESC, s.trade_name, s.id
+          LIMIT $${params.length}`,
+        params,
+      );
+      return rows;
     },
 
     /** Crea el comercio del usuario. Si ya tiene uno devuelve null (un usuario = un comercio). */

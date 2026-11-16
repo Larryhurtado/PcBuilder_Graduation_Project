@@ -167,3 +167,48 @@ describe('evaluateCandidate (selector "+ Elegir componente")', () => {
     expect(build).toEqual({ cpu: f.cpuRyzen5_7600 });
   });
 });
+
+describe('evaluateCandidate con una caja candidata (regresión: la caja siempre daba "ok")', () => {
+  // Las reglas nombran la pieza 'case' y la ranura del armado es 'pcCase'.
+  it('una caja que no admite la GPU elegida es "fail" por RC-05', () => {
+    const r = evaluateCandidate('case', f.caseNr200p, { gpu: f.gpuRtx4060Ti });
+    expect(r.status).toBe(STATUS.FAIL);
+    expect(r.results.map((x) => x.code)).toContain('RC-05');
+  });
+
+  it('una caja que no admite el formato de la placa elegida es "fail" por RC-04', () => {
+    const r = evaluateCandidate('case', f.caseNr200p, { motherboard: f.mbB650mPro });
+    expect(r.status).toBe(STATUS.FAIL);
+    expect(r.results.map((x) => x.code)).toContain('RC-04');
+  });
+
+  it('una caja más baja que el disipador elegido es "fail" por RC-06', () => {
+    const r = evaluateCandidate('case', f.caseNr200p, { cooler: f.coolerAk400 });
+    expect(r.status).toBe(STATUS.FAIL);
+    expect(r.results.map((x) => x.code)).toContain('RC-06');
+  });
+
+  it('una caja sin la altura máxima de disipador es "unknown", no "ok"', () => {
+    const r = evaluateCandidate('case', f.caseH510Unknown, { cooler: f.coolerAk400 });
+    expect(r.status).toBe(STATUS.UNKNOWN);
+  });
+
+  it('una caja que sí encaja con todo lo elegido es "ok" y solo trae reglas de la caja', () => {
+    const build = { motherboard: f.mbB650mPro, gpu: f.gpuRtx4060Ti, cooler: f.coolerAk400 };
+    const r = evaluateCandidate('case', f.case4000d, build);
+    expect(r.status).toBe(STATUS.OK);
+    expect(r.results.map((x) => x.code).sort()).toEqual(['RC-04', 'RC-05', 'RC-06']);
+    expect(r.results.every((x) => x.parts.includes('case'))).toBe(true);
+  });
+
+  it('cambiar una caja ya elegida por otra evalúa la nueva, no la anterior', () => {
+    const build = { gpu: f.gpuRtx4060Ti, pcCase: f.case4000d };
+    expect(evaluateCandidate('case', f.caseNr200p, build).status).toBe(STATUS.FAIL);
+  });
+
+  it('el resto de categorías sigue igual: la ranura y la categoría coinciden', () => {
+    for (const category of ['cpu', 'motherboard', 'ram', 'gpu', 'psu', 'cooler', 'storage']) {
+      expect(slotForCategory(category)).toBe(category);
+    }
+  });
+});
