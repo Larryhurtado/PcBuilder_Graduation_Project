@@ -25,6 +25,21 @@ export async function login(credentials) {
   return data.user;
 }
 
+/**
+ * Crea la cuenta (POST /auth/register). El servidor abre la sesión al registrar, así que el
+ * usuario queda ingresado. Lanza ApiError si falla (EMAIL_TAKEN, VALIDATION_ERROR, RATE_LIMITED o
+ * NETWORK_ERROR).
+ * @param {{ email: string, password: string, fullName: string, acceptTerms: true }} data
+ */
+export async function register(data) {
+  const auth = authResponseSchema.parse(
+    await apiFetch('/auth/register', { method: 'POST', body: data }),
+  );
+  bootstrapPromise = Promise.resolve(true);
+  setAuthenticated(auth);
+  return auth.user;
+}
+
 /** Cierra la sesión: pide al servidor borrar la cookie y olvida el token. Nunca falla hacia afuera. */
 export async function logout() {
   try {

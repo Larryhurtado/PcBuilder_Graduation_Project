@@ -1,4 +1,5 @@
 import LoginPage from '../features/auth/LoginPage.jsx';
+import RegisterPage from '../features/auth/RegisterPage.jsx';
 import BuilderPage from '../features/builder/BuilderPage.jsx';
 import CatalogPage from '../features/catalog/CatalogPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
@@ -12,7 +13,6 @@ import { ComingSoonPage, NotFoundPage } from './pages.jsx';
 // Pantallas pendientes (docs/contexto-frontend.md, sección 11). Cada una se reemplaza por su
 // componente real al construirla.
 const pendingPublic = [
-  ['registro', 'Crear cuenta'],
   ['recuperar', 'Recuperar contraseña'],
   ['vender', 'Quiero vender'],
   ['armado/:codigo', 'Armado compartido'],
@@ -50,6 +50,7 @@ export const routes = [
       { path: 'tiendas', element: <StoresPage /> },
       { path: 'tiendas/:id', element: <StoreProfilePage /> },
       { path: 'ingresar', element: <LoginPage /> },
+      { path: 'registro', element: <RegisterPage /> },
       ...pendingPublic.map(soon),
       { element: <RequireAuth />, children: pendingAccount.map(soon) },
       { element: <RequireAuth roles={['seller']} />, children: pendingSeller.map(soon) },

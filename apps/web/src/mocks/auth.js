@@ -1,6 +1,7 @@
 // Autenticación simulada (POST /auth/login, /auth/refresh, /auth/logout y GET /me). Imita la cookie
 // de refresco con una variable: mientras haya "sesión", /auth/refresh devuelve un token nuevo.
 // Las cuentas de abajo son SOLO de demostración para el desarrollo con VITE_USE_MOCKS=true.
+import { registerBodySchema } from '@hw/contracts';
 import { http, HttpResponse } from 'msw';
 
 export const demoUsers = [
@@ -33,12 +34,16 @@ const authResponse = (user) => ({
 const error = (status, code, message) =>
   HttpResponse.json({ code, message, details: null, requestId: 'mock-request' }, { status });
 
+/** Cuentas existentes: las de demostración más las que se creen con el registro simulado. */
+let users = [...demoUsers];
+
 /** Usuario con "cookie de refresco" vigente (null = visitante). */
 let current = null;
 
-/** Quita la sesión simulada (para pruebas). */
+/** Quita la sesión simulada y las cuentas creadas durante la prueba. */
 export function resetMockAuth() {
   current = null;
+  users = [...demoUsers];
 }
 
 /** Deja una sesión simulada abierta, como si ya hubiera una cookie de refresco (para pruebas). */
@@ -48,9 +53,29 @@ export function signInMock(user = demoUsers[0]) {
 }
 
 export const authHandlers = [
+  // Registro: valida con el contrato, rechaza correos repetidos y deja la sesión abierta
+  http.post(api('/auth/register'), async ({ request }) => {
+    const parsed = registerBodySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return error(422, 'VALIDATION_ERROR', 'Hay datos que no son válidos.');
+    const { email, password, fullName } = parsed.data;
+    if (users.some((item) => item.email === email)) {
+      return error(409, 'EMAIL_TAKEN', 'Ya existe una cuenta con ese correo.');
+    }
+    const user = {
+      id: `b0000000-0000-4000-8000-${String(users.length + 1).padStart(12, '0')}`,
+      email,
+      password,
+      fullName,
+      role: 'buyer',
+    };
+    users = [...users, user];
+    current = user;
+    return HttpResponse.json(authResponse(user), { status: 201 });
+  }),
+
   http.post(api('/auth/login'), async ({ request }) => {
     const body = await request.json().catch(() => null);
-    const user = demoUsers.find(
+    const user = users.find(
       (item) => item.email === body?.email && item.password === body?.password,
     );
     if (!user) return error(401, 'INVALID_CREDENTIALS', 'Correo o contraseña incorrectos.');
@@ -70,7 +95,7 @@ export const authHandlers = [
   }),
 
   http.get(api('/me'), ({ request }) => {
-    const user = demoUsers.find(
+    const user = users.find(
       (item) => request.headers.get('Authorization') === `Bearer ${tokenFor(item)}`,
     );
     return user
