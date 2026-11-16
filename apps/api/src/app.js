@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { errorHandler, notFoundHandler } from './http/error-handler.js';
 import { requestId } from './http/request-id.js';
+import { createDb } from './kernel/db.js';
+import { createCatalogModule } from './modules/catalog/index.js';
 
 /**
  * Construye la aplicación Express sin arrancarla (así se puede probar con supertest).
@@ -40,6 +42,10 @@ export function createApp({ config, pool = null, logger } = {}) {
 
   // Todas las rutas de negocio cuelgan de /api/v1. Cada módulo monta aquí su router.
   const api = express.Router();
+  if (pool) {
+    const db = createDb(pool);
+    api.use(createCatalogModule({ db }).router);
+  }
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);

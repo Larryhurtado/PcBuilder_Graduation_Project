@@ -16,6 +16,7 @@
     "dev:web": "npm run dev -w @hw/web",
     "test": "npm test --workspaces --if-present && npm run test:tools",
     "test:tools": "vitest run --root tools",
+    "test:int": "npm run test:int -w @hw/api",
     "db:reset": "node tools/db.mjs reset",
     "db:verify": "node tools/db.mjs verify",
     "db:migrate": "node tools/db.mjs migrate",
