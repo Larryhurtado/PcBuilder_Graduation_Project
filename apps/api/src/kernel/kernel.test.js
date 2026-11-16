@@ -19,6 +19,24 @@ describe('loadConfig', () => {
   it('rechaza un PORT inválido', () => {
     expect(() => loadConfig({ PORT: 'abc' })).toThrow();
   });
+
+  it('JWT_SECRET es opcional fuera de producción y exige 32 caracteres', () => {
+    expect(loadConfig({}).JWT_SECRET).toBeUndefined();
+    expect(() => loadConfig({ JWT_SECRET: 'corto' })).toThrow();
+    expect(loadConfig({ JWT_SECRET: 'x'.repeat(32) }).JWT_SECRET).toHaveLength(32);
+  });
+
+  it('en producción JWT_SECRET es obligatorio', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/JWT_SECRET/);
+    expect(loadConfig({ NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(32) }).NODE_ENV).toBe(
+      'production',
+    );
+  });
+
+  it('ANALYTICS_SECRET exige 16 caracteres si se define', () => {
+    expect(() => loadConfig({ ANALYTICS_SECRET: 'corto' })).toThrow();
+    expect(loadConfig({ ANALYTICS_SECRET: 'x'.repeat(16) }).ANALYTICS_SECRET).toBeDefined();
+  });
 });
 
 describe('AppError', () => {
