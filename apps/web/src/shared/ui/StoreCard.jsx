@@ -1,13 +1,91 @@
 import { Link } from 'react-router';
 import { formatLocation } from '../lib/format.js';
 import Icon from './Icon.jsx';
+import StoreWhatsAppLink from './StoreWhatsAppLink.jsx';
+
+const initials = (name) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+
+/** Versión del directorio: iniciales, ubicación completa, ofertas activas, catálogo y WhatsApp. */
+function DetailedStoreCard({ store }) {
+  const offers = store.offersCount;
+  return (
+    <article className="flex h-full flex-col justify-between gap-space-md rounded-2xl bg-surface-container p-space-md">
+      <div className="space-y-space-md">
+        <div className="flex items-start gap-space-sm">
+          <span
+            aria-hidden="true"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface text-label-md text-primary"
+          >
+            {initials(store.name)}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <h3 className="text-headline-sm leading-snug text-on-surface">{store.name}</h3>
+            <span className="inline-flex items-center gap-1 rounded bg-compatible/12 px-2 py-0.5 text-[11px] font-medium text-compatible">
+              <Icon name="verified" className="text-[13px]" />
+              Comercio verificado
+            </span>
+          </div>
+        </div>
+
+        <ul className="space-y-1 text-body-sm text-on-surface-variant">
+          {store.commercialCenter && (
+            <li className="flex items-start gap-1.5">
+              <Icon name="apartment" className="mt-0.5 text-[16px] text-outline" />
+              <span>{store.commercialCenter}</span>
+            </li>
+          )}
+          <li className="flex items-start gap-1.5">
+            <Icon name="location_on" className="mt-0.5 text-[16px] text-outline" />
+            <span>{[store.address, formatLocation(store)].filter(Boolean).join(' • ')}</span>
+          </li>
+        </ul>
+
+        <p className="tnum flex items-baseline justify-between rounded-xl bg-surface px-space-sm py-2 text-body-sm">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-outline">
+            Inventario vigente
+          </span>
+          <span className="text-label-md text-secondary">
+            {offers} {offers === 1 ? 'oferta activa' : 'ofertas activas'}
+          </span>
+        </p>
+
+        {store.description && (
+          <p className="line-clamp-3 text-body-sm text-on-surface-variant">{store.description}</p>
+        )}
+      </div>
+
+      <div className="flex gap-space-xs">
+        <Link
+          to={`/tiendas/${store.id}`}
+          aria-label={`Ver tienda y catálogo de ${store.name}`}
+          className="flex h-11 flex-1 items-center justify-center rounded-xl border border-outline-variant px-3 text-label-md text-on-surface transition-colors hover:border-outline hover:bg-surface-variant"
+        >
+          <span aria-hidden="true" className="sm:hidden">
+            Ver tienda
+          </span>
+          <span aria-hidden="true" className="hidden sm:inline">
+            Ver tienda y catálogo
+          </span>
+        </Link>
+        <StoreWhatsAppLink store={store} />
+      </div>
+    </article>
+  );
+}
 
 /**
- * Tarjeta de comercio verificado (inicio, directorio). GET /stores solo devuelve comercios
- * verificados, así que la insignia se muestra siempre.
- * @param {{ store: import('zod').infer<typeof import('@hw/contracts').publicStoreSchema> }} props
+ * Tarjeta de comercio verificado. GET /stores solo devuelve comercios verificados, así que la
+ * insignia se muestra siempre. `detailed` es la versión del directorio.
+ * @param {{ store: import('zod').infer<typeof import('@hw/contracts').publicStoreSchema>, detailed?: boolean }} props
  */
-export default function StoreCard({ store }) {
+export default function StoreCard({ store, detailed = false }) {
+  if (detailed) return <DetailedStoreCard store={store} />;
   const location = [formatLocation(store), store.address].filter(Boolean).join(' • ');
 
   return (

@@ -1,42 +1,6 @@
-import { useEffect, useState } from 'react';
 import Icon from '../../shared/ui/Icon.jsx';
+import SearchField from '../../shared/ui/SearchField.jsx';
 import { SORTS } from './filters.js';
-
-/** Campo de búsqueda: busca solo al dejar de escribir (o con Enter) y se vacía si cambia la URL. */
-function SearchField({ initial, onSearch }) {
-  const [value, setValue] = useState(initial);
-
-  useEffect(() => {
-    if (value.trim() === initial) return undefined;
-    const timer = setTimeout(() => onSearch(value.trim()), 350);
-    return () => clearTimeout(timer);
-  }, [value, initial, onSearch]);
-
-  return (
-    <form
-      role="search"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSearch(value.trim());
-      }}
-      className="relative flex-1"
-    >
-      <Icon
-        name="search"
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline"
-      />
-      <input
-        type="search"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        aria-label="Buscar en el catálogo"
-        placeholder="Buscar CPU, GPU, marca o modelo"
-        autoComplete="off"
-        className="h-12 w-full rounded-xl border border-outline-variant bg-surface pl-11 pr-3 text-body-sm text-on-surface focus:border-primary-container focus:outline-none focus:ring-3 focus:ring-primary-container/25"
-      />
-    </form>
-  );
-}
 
 /**
  * Barra de búsqueda, orden y tipo de vista. En pantallas pequeñas agrega el botón "Filtros".
@@ -70,6 +34,8 @@ export default function SearchBar({
       <SearchField
         key={q ?? ''}
         initial={q ?? ''}
+        label="Buscar en el catálogo"
+        placeholder="Buscar CPU, GPU, marca o modelo"
         onSearch={(value) => onSearch(value || undefined)}
       />
 

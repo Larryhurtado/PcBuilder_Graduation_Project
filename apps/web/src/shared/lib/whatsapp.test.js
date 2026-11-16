@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { buildWhatsAppMessage, buildWhatsAppUrl } from './whatsapp.js';
+import { buildStoreWhatsAppUrl, buildWhatsAppMessage, buildWhatsAppUrl } from './whatsapp.js';
+
+describe('buildStoreWhatsAppUrl', () => {
+  it('arma un enlace de consulta general a la tienda', () => {
+    const url = buildStoreWhatsAppUrl({
+      phoneE164: '+573000000001',
+      storeName: 'TecnoPasarela Cali',
+    });
+    expect(url).toMatch(/^https:\/\/wa\.me\/573000000001\?text=/);
+    expect(decodeURIComponent(url.split('text=')[1])).toBe(
+      'Hola, vi TecnoPasarela Cali en PcBuilder. Quisiera consultar por sus componentes.',
+    );
+  });
+
+  it('devuelve null con un número inválido o ausente', () => {
+    expect(buildStoreWhatsAppUrl({ phoneE164: null, storeName: 'X' })).toBeNull();
+    expect(buildStoreWhatsAppUrl({ phoneE164: '3000000001', storeName: 'X' })).toBeNull();
+  });
+});
 
 const offer = { productName: 'AMD Ryzen 5 7600', priceCop: 849000 };
 
