@@ -64,3 +64,38 @@ export function adaptScriptForPlatform(sql, platform = process.platform) {
 export function quoteIdent(name) {
   return `"${name.replaceAll('"', '""')}"`;
 }
+
+/** Valida de forma básica un correo (evita pasar texto arbitrario a la consola de comandos). */
+export function isValidEmail(value) {
+  return typeof value === 'string' && /^[^@\s'";\\]+@[^@\s'";\\]+\.[^@\s'";\\]+$/.test(value);
+}
+
+/**
+ * SQL que verifica el comercio del correo dado (`quotedEmail` ya viene entre comillas simples).
+ * Respeta lo que el vendedor ya completó y rellena solo lo que falta. Devuelve el nombre comercial
+ * del comercio verificado, o nada si no existe el comercio o el administrador de demostración.
+ */
+export function buildApproveStoreSql(quotedEmail) {
+  const owner = `(SELECT id FROM identity.users WHERE email = ${quotedEmail})`;
+  return `
+    UPDATE verification.requests
+       SET status = 'approved',
+           submitted_at = COALESCE(submitted_at, now()),
+           reviewed_at = now(),
+           reviewed_by = (SELECT id FROM identity.users WHERE email = 'admin@demo.test'),
+           reviewer_note = 'Aprobado en desarrollo (dev:approve-store).',
+           deadline_at = NULL
+     WHERE store_id = (SELECT id FROM stores.stores WHERE owner_user_id = ${owner});
+    UPDATE stores.stores
+       SET nit = COALESCE(nit, lpad(floor(random() * 1e9)::bigint::text, 9, '0') || '-' || floor(random() * 10)::int),
+           whatsapp_e164 = COALESCE(whatsapp_e164, '+573000000000'),
+           department = COALESCE(department, 'Valle del Cauca'),
+           city = COALESCE(city, 'Cali'),
+           address = COALESCE(address, 'Direccion de prueba'),
+           is_verified = true,
+           updated_at = now()
+     WHERE owner_user_id = ${owner};
+    SELECT trade_name FROM stores.stores s
+      JOIN verification.requests r ON r.store_id = s.id AND r.status = 'approved'
+     WHERE s.owner_user_id = ${owner};`;
+}

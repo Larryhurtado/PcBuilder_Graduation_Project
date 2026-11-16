@@ -9,6 +9,16 @@ export {
   authResponseSchema,
   meResponseSchema,
 } from './auth.js';
+export {
+  whatsappE164Schema,
+  verificationStatusValues,
+  convertBodySchema,
+  updateStoreBodySchema,
+  storeSchema,
+  storeResponseSchema,
+  convertResponseSchema,
+  verificationStatusSchema,
+} from './stores.js';
 export { eventTypeValues, eventBodySchema } from './events.js';
 export {
   offerSortValues,

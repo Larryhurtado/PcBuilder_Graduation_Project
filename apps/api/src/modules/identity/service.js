@@ -95,6 +95,25 @@ export function createIdentityService({ repository, signer, hasher }) {
       return toPublicUser(user);
     },
 
+    /** Cambia el rol de la cuenta (p. ej. comprador → vendedor). Devuelve el usuario actualizado. */
+    async setRole(userId, role) {
+      const user = await repository.setRole(userId, role);
+      if (!user) throw new AppError('UNAUTHENTICATED');
+      return toPublicUser(user);
+    },
+
+    /** Token de acceso nuevo con el rol vigente en la base (el de refresco no cambia). */
+    async issueAccessToken(userId) {
+      const user = await repository.findUserById(userId);
+      if (!user) throw new AppError('UNAUTHENTICATED');
+      assertActive(user);
+      return {
+        accessToken: signer.sign(user),
+        expiresIn: ACCESS_TTL_SECONDS,
+        user: toPublicUser(user),
+      };
+    },
+
     /** Valida un token de acceso y devuelve quién es. Lo usa el resto de módulos vía la fachada. */
     authenticate(accessToken) {
       return signer.verify(accessToken);

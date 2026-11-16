@@ -20,6 +20,7 @@
     "db:reset": "node tools/db.mjs reset",
     "db:verify": "node tools/db.mjs verify",
     "db:migrate": "node tools/db.mjs migrate",
+    "dev:approve-store": "node tools/db.mjs approve-store",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "lint": "eslint .",
     "format": "prettier --write .",

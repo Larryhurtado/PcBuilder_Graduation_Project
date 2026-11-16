@@ -39,6 +39,11 @@ export function createIdentityModule({
     }),
     /** requireAuth y requireRole para las rutas protegidas de otros módulos. */
     middleware,
-    facade: { authenticate: service.authenticate, getUser: service.getMe },
+    facade: {
+      authenticate: service.authenticate,
+      getUser: service.getMe,
+      setRole: service.setRole,
+      issueAccessToken: service.issueAccessToken,
+    },
   };
 }

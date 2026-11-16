@@ -29,6 +29,15 @@ export function createIdentityRepository(db) {
       return rows[0];
     },
 
+    async setRole(userId, role) {
+      const { rows } = await db.query(
+        `UPDATE identity.users SET role = $2::identity.user_role, updated_at = now()
+          WHERE id = $1 RETURNING ${USER_COLUMNS}`,
+        [userId, role],
+      );
+      return rows[0] ?? null;
+    },
+
     async touchLastLogin(userId) {
       await db.query('UPDATE identity.users SET last_login_at = now() WHERE id = $1', [userId]);
     },

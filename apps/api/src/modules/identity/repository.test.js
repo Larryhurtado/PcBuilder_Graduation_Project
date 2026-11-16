@@ -54,6 +54,17 @@ describe('identity repository', () => {
     expect(db.query.mock.calls.map((c) => c[1])).toEqual([['u1'], ['u1']]);
   });
 
+  it('setRole castea al tipo enum y devuelve el usuario o null', async () => {
+    const d = dbReturning([{ id: 'u1', role: 'seller' }]);
+    expect(await createIdentityRepository(d).setRole('u1', 'seller')).toEqual({
+      id: 'u1',
+      role: 'seller',
+    });
+    expect(d.query.mock.calls[0][0]).toContain('$2::identity.user_role');
+    expect(d.query.mock.calls[0][1]).toEqual(['u1', 'seller']);
+    expect(await createIdentityRepository(dbReturning()).setRole('x', 'seller')).toBeNull();
+  });
+
   it('findRefreshToken busca por hash', async () => {
     const db = dbReturning([{ id: 't1', userId: 'u1', revoked: false, expired: false }]);
     expect((await createIdentityRepository(db).findRefreshToken('h')).id).toBe('t1');

@@ -10,6 +10,8 @@ import { createAnalyticsModule } from './modules/analytics/index.js';
 import { createCatalogModule } from './modules/catalog/index.js';
 import { createIdentityModule } from './modules/identity/index.js';
 import { createOffersModule } from './modules/offers/index.js';
+import { createStoresModule } from './modules/stores/index.js';
+import { createVerificationModule } from './modules/verification/index.js';
 
 /**
  * Construye la aplicación Express sin arrancarla (así se puede probar con supertest).
@@ -54,6 +56,14 @@ export function createApp({ config, pool = null, logger } = {}) {
     });
     api.use(identity.router);
     app.locals.auth = identity.middleware;
+    const verification = createVerificationModule({ db });
+    const stores = createStoresModule({
+      db,
+      identity: identity.facade,
+      verification: verification.facade,
+      auth: identity.middleware,
+    });
+    api.use(stores.router);
     const catalog = createCatalogModule({ db });
     api.use(catalog.router);
     const offers = createOffersModule({ db, catalog: catalog.facade });
