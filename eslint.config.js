@@ -23,7 +23,7 @@ export default [
   },
   // Backend, paquetes y archivos de configuración: Node.js
   {
-    files: ['apps/api/**/*.js', 'packages/**/*.js', '*.js', 'apps/web/*.js'],
+    files: ['apps/api/**/*.js', 'packages/**/*.js', '*.js', 'apps/web/*.js', 'tools/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',

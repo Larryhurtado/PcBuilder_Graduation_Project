@@ -14,7 +14,11 @@
   "scripts": {
     "dev:api": "npm run dev -w @hw/api",
     "dev:web": "npm run dev -w @hw/web",
-    "test": "npm test --workspaces --if-present",
+    "test": "npm test --workspaces --if-present && npm run test:tools",
+    "test:tools": "vitest run --root tools",
+    "db:reset": "node tools/db.mjs reset",
+    "db:verify": "node tools/db.mjs verify",
+    "db:migrate": "node tools/db.mjs migrate",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "lint": "eslint .",
     "format": "prettier --write .",
