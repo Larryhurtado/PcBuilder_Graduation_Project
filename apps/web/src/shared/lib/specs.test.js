@@ -1,5 +1,74 @@
 import { describe, expect, it } from 'vitest';
-import { categoryLabels, specHighlight, specLine } from './specs.js';
+import { categoryLabels, specHighlight, specLine, specPills } from './specs.js';
+
+describe('specPills', () => {
+  const cpu = {
+    socket: 'AM5',
+    tdpW: 120,
+    cores: 8,
+    threads: 16,
+    baseClockGhz: 4.2,
+    boostClockGhz: 5,
+    memoryTypes: ['DDR5'],
+    hasIntegratedGraphics: true,
+  };
+
+  it('resume una CPU con TDP, memoria y gráficos', () => {
+    expect(specPills('cpu', cpu)).toEqual(['TDP 120 W', 'DDR5', 'Gráficos integrados']);
+    expect(specPills('cpu', { ...cpu, hasIntegratedGraphics: false })[2]).toBe('Requiere GPU');
+  });
+
+  it('nunca pasa de tres etiquetas y omite los datos desconocidos', () => {
+    const gpu = {
+      tdpW: 220,
+      lengthMm: null,
+      slotWidth: 2,
+      interface: 'PCIe 4.0',
+      memoryGb: 12,
+      powerConnectors: null,
+    };
+    expect(specPills('gpu', gpu)).toEqual(['TDP 220 W', '12 GB']);
+    expect(
+      specPills('case', { formFactor: 'ATX', maxGpuLengthMm: 360, maxCoolerHeightMm: 170 }),
+    ).toHaveLength(3);
+    expect(specPills('cpu', { ...cpu, hasIntegratedGraphics: null, memoryTypes: null })).toEqual([
+      'TDP 120 W',
+    ]);
+  });
+
+  it('cubre fuente, cooler, memoria, placa y almacenamiento', () => {
+    expect(
+      specPills('psu', {
+        wattageW: 750,
+        formFactor: 'ATX',
+        efficiencyRating: '80+ Gold',
+        modular: 'Full',
+      }),
+    ).toEqual(['80+ Gold', 'Full', 'ATX']);
+    expect(specPills('cooler', { heightMm: 155, waterCooled: false, radiatorMm: null })).toEqual([
+      'Altura 155 mm',
+      'Aire',
+    ]);
+    expect(specPills('ram', { capacityGb: 32, speedMhz: 6200, casLatency: 32 })).toEqual([
+      '32 GB',
+      '6200 MHz',
+      'CL32',
+    ]);
+    expect(specPills('motherboard', { formFactor: 'ATX', ramType: 'DDR5', m2Slots: 2 })).toEqual([
+      'ATX',
+      'DDR5',
+      '2 M.2',
+    ]);
+    expect(
+      specPills('storage', { storageType: 'SSD', interface: 'NVMe', capacityGb: 1000 }),
+    ).toEqual(['SSD', 'NVMe', '1 TB']);
+  });
+
+  it('sin especificaciones o con una categoría desconocida no hay etiquetas', () => {
+    expect(specPills('cpu', null)).toEqual([]);
+    expect(specPills('monitor', {})).toEqual([]);
+  });
+});
 
 const cpu = {
   socket: 'AM5',

@@ -6,6 +6,8 @@ const buttonStyle =
   'flex h-11 w-full items-center justify-center gap-2 rounded-xl text-label-md transition-colors motion-reduce:transition-none';
 const iconStyle =
   'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors motion-reduce:transition-none md:h-8 md:w-8';
+const inlineStyle =
+  'flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 text-label-sm transition-colors motion-reduce:transition-none';
 
 /**
  * Botón "Contactar por WhatsApp" de una oferta: un solo clic abre el chat con la tienda con el
@@ -21,6 +23,8 @@ export default function WhatsAppLink({ offer, variant = 'button', className = ''
     priceCop: offer.priceCop,
   });
   const compact = variant === 'icon';
+  const inline = variant === 'inline';
+  const shape = compact ? iconStyle : inline ? inlineStyle : buttonStyle;
 
   if (!href) {
     return (
@@ -31,10 +35,10 @@ export default function WhatsAppLink({ offer, variant = 'button', className = ''
           compact ? `WhatsApp no disponible para ${offer.component.displayName}` : undefined
         }
         title={compact ? 'WhatsApp no disponible' : undefined}
-        className={`${compact ? iconStyle : buttonStyle} cursor-not-allowed bg-surface-variant text-outline ${className}`}
+        className={`${shape} cursor-not-allowed bg-surface-variant text-outline ${className}`}
       >
         <Icon name="chat" className={compact ? 'text-[16px]' : 'text-[18px]'} />
-        {!compact && <span>WhatsApp no disponible</span>}
+        {!compact && <span>{inline ? 'Sin WhatsApp' : 'WhatsApp no disponible'}</span>}
       </span>
     );
   }
@@ -47,14 +51,14 @@ export default function WhatsAppLink({ offer, variant = 'button', className = ''
       onClick={() => trackOfferEvent(offer.offerId, 'whatsapp_click')}
       aria-label={compact ? `Cotizar ${offer.component.displayName} por WhatsApp` : undefined}
       title={compact ? 'Cotizar por WhatsApp' : undefined}
-      className={`${compact ? iconStyle : buttonStyle} ${
+      className={`${shape} ${
         compact
           ? 'bg-surface-container text-whatsapp hover:bg-whatsapp hover:text-surface'
           : 'bg-whatsapp/15 text-whatsapp hover:bg-whatsapp/25'
       } ${className}`}
     >
       <Icon name="chat" className={compact ? 'text-[16px]' : 'text-[18px]'} />
-      {!compact && <span>Contactar por WhatsApp</span>}
+      {!compact && <span>{inline ? 'WhatsApp' : 'Contactar por WhatsApp'}</span>}
     </a>
   );
 }

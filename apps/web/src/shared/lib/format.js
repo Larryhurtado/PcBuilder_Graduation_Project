@@ -34,3 +34,12 @@ export function formatLocation({ city, department } = {}) {
   }
   return city || department || '';
 }
+
+/**
+ * Garantía de la oferta en meses: "Garantía 12 meses", "Garantía 1 mes" o "Sin garantía".
+ * @param {number | null | undefined} months
+ */
+export function formatWarranty(months) {
+  if (typeof months !== 'number' || !Number.isFinite(months) || months <= 0) return 'Sin garantía';
+  return months === 1 ? 'Garantía 1 mes' : `Garantía ${months} meses`;
+}
