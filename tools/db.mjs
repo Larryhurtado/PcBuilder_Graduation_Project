@@ -2,10 +2,18 @@
 // Los scripts .sql usan comandos propios de psql (\set, \o), así que se ejecutan con psql.
 // La conexión sale de DATABASE_URL en el .env de la raíz (o de la variable de entorno).
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assertSafeDatabaseName, parseDatabaseUrl, quoteIdent, sortSqlFiles } from './db-lib.mjs';
+import {
+  adaptScriptForPlatform,
+  assertSafeDatabaseName,
+  nullDevice,
+  parseDatabaseUrl,
+  quoteIdent,
+  sortSqlFiles,
+} from './db-lib.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dbDir = join(root, 'db');
@@ -67,10 +75,22 @@ function psql(conn, database, extraArgs, { capture = false } = {}) {
   return result;
 }
 
-function runFile(conn, file) {
+/** Ejecuta un script de db/. Con `quiet` se descarta la salida de los SELECT de relleno. */
+function runFile(conn, file, { quiet = false } = {}) {
   console.log(`>>> ${file}`);
-  const result = psql(conn, conn.database, ['-q', '-f', join(dbDir, file)]);
-  if (result.status !== 0) fail(`falló ${file}`);
+  const original = readFileSync(join(dbDir, file), 'utf8');
+  const adapted = adaptScriptForPlatform(original);
+  // Se ejecuta una copia temporal adaptada al sistema operativo; el archivo de db/ no se toca.
+  const tmpDir = mkdtempSync(join(tmpdir(), 'hw-db-'));
+  const tmpFile = join(tmpDir, file);
+  writeFileSync(tmpFile, adapted);
+  try {
+    const args = ['-q', ...(quiet ? ['-o', nullDevice()] : []), '-f', tmpFile];
+    const result = psql(conn, conn.database, args);
+    if (result.status !== 0) fail(`falló ${file}`);
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
 }
 
 function sql(conn, database, statement) {
@@ -112,7 +132,7 @@ function reset(conn) {
   console.log(`Recreando la base "${conn.database}" en ${conn.host}:${conn.port}…`);
   sql(conn, 'postgres', `DROP DATABASE IF EXISTS ${quoteIdent(conn.database)} WITH (FORCE)`);
   sql(conn, 'postgres', `CREATE DATABASE ${quoteIdent(conn.database)}`);
-  for (const file of baseScripts) runFile(conn, file);
+  for (const file of baseScripts) runFile(conn, file, { quiet: true });
   migrate(conn);
   console.log('\nBase lista. Ejecuta "npm run db:verify" para correr las 34 pruebas.');
 }

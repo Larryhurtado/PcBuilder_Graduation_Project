@@ -47,6 +47,19 @@ export function sortSqlFiles(names) {
   return names.filter((n) => n.endsWith('.sql')).sort((a, b) => a.localeCompare(b));
 }
 
+/** Dispositivo nulo del sistema operativo (donde se descarta la salida). */
+export function nullDevice(platform = process.platform) {
+  return platform === 'win32' ? 'NUL' : '/dev/null';
+}
+
+/**
+ * Los scripts usan `\o /dev/null` para ocultar salida; en Windows ese dispositivo es `NUL`.
+ * Devuelve el contenido adaptado al sistema operativo, sin tocar el archivo original.
+ */
+export function adaptScriptForPlatform(sql, platform = process.platform) {
+  return sql.replaceAll('\\o /dev/null', `\\o ${nullDevice(platform)}`);
+}
+
 /** Escapa un identificador de PostgreSQL entre comillas dobles. */
 export function quoteIdent(name) {
   return `"${name.replaceAll('"', '""')}"`;

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { assertSafeDatabaseName, parseDatabaseUrl, quoteIdent, sortSqlFiles } from './db-lib.mjs';
+import {
+  adaptScriptForPlatform,
+  assertSafeDatabaseName,
+  parseDatabaseUrl,
+  quoteIdent,
+  sortSqlFiles,
+} from './db-lib.mjs';
 
 describe('parseDatabaseUrl', () => {
   it('extrae usuario, clave, host, puerto y base', () => {
@@ -56,6 +62,23 @@ describe('sortSqlFiles', () => {
       '006_b.sql',
       '010_c.sql',
     ]);
+  });
+});
+
+describe('adaptScriptForPlatform', () => {
+  const sql = '\\set ON_ERROR_STOP on\n\\o /dev/null\nSELECT 1;\n\\o\n';
+
+  it('en Windows cambia /dev/null por NUL', () => {
+    expect(adaptScriptForPlatform(sql, 'win32')).toContain('\\o NUL');
+    expect(adaptScriptForPlatform(sql, 'win32')).not.toContain('/dev/null');
+  });
+
+  it('en Linux y macOS deja el script igual', () => {
+    expect(adaptScriptForPlatform(sql, 'linux')).toBe(sql);
+  });
+
+  it('no toca el "\\o" que restablece la salida', () => {
+    expect(adaptScriptForPlatform(sql, 'win32').endsWith('\\o\n')).toBe(true);
   });
 });
 
