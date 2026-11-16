@@ -241,7 +241,7 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Ver sección 6 | Sesión | 13 |
 | `GET /me` | Autenticado | Usuario actual | 13 |
 
-**`GET /offers`: parámetros**
+**`GET /offers`: parámetros** **[Implementado. `offersQuerySchema` de `@hw/contracts` es el mismo esquema que usa la API: se puede reutilizar en el frontend. Los filtros técnicos exigen `category`; las piezas con el dato desconocido no se ocultan; el `cursor` es opaco y solo vale con el mismo `sort`; `includeSpecs=true` agrega `component.specs`. También funcionan `GET /offers/featured` y `GET /offers/{id}`. Respuestas: `offerListResponseSchema`, `featuredOffersResponseSchema` y `offerDetailSchema`.]**
 
 | Parámetro | Valores |
 |---|---|
