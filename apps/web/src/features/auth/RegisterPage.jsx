@@ -13,7 +13,10 @@ import Icon from '../../shared/ui/Icon.jsx';
 import AuthShell from './AuthShell.jsx';
 import { FormAlert, PasswordField, SubmitButton, TextField } from './fields.jsx';
 
-/** Reglas del contrato (registerBodySchema) con mensajes propios para los campos vacíos. */
+/**
+ * Reglas del contrato (registerBodySchema) con mensajes propios para los campos vacíos, más la
+ * confirmación de la contraseña, que existe solo en el formulario (el servidor no la recibe).
+ */
 const formSchema = z.object({
   fullName: z
     .string()
@@ -26,17 +29,44 @@ const formSchema = z.object({
     .min(1, 'Escribe tu correo electrónico')
     .pipe(registerBodySchema.shape.email),
   password: z.string().min(1, 'Escribe una contraseña').pipe(registerBodySchema.shape.password),
+  confirmPassword: z.string().min(1, 'Confirma tu contraseña'),
   acceptTerms: registerBodySchema.shape.acceptTerms,
 });
 
-/** Requisitos de la contraseña, los mismos que valida el servidor (8 a 72, una letra y un número). */
+const schemaResolver = zodResolver(formSchema);
+
+/**
+ * Valida con el esquema y además comprueba que las dos contraseñas coincidan. La coincidencia no
+ * va dentro del esquema (`.refine`) porque Zod la omite mientras otro campo sea inválido, y
+ * entonces el aviso no saldría al salir del campo de confirmación.
+ */
+const resolver = async (values, context, options) => {
+  const result = await schemaResolver(values, context, options);
+  const mismatch =
+    values.confirmPassword && values.password !== values.confirmPassword
+      ? { type: 'validate', message: 'Las contraseñas no coinciden' }
+      : null;
+  if (!mismatch || result.errors?.confirmPassword) return result;
+  return { values: {}, errors: { ...result.errors, confirmPassword: mismatch } };
+};
+
+/** Requisitos de la contraseña: los tres del servidor (8 a 72, una letra, un número) y la coincidencia. */
 const passwordRules = [
-  { id: 'length', label: 'Entre 8 y 72 caracteres', test: (v) => v.length >= 8 && v.length <= 72 },
-  { id: 'letter', label: 'Al menos una letra', test: (v) => /[A-Za-z]/.test(v) },
-  { id: 'number', label: 'Al menos un número', test: (v) => /[0-9]/.test(v) },
+  {
+    id: 'length',
+    label: 'Entre 8 y 72 caracteres',
+    test: (password) => password.length >= 8 && password.length <= 72,
+  },
+  { id: 'letter', label: 'Al menos una letra', test: (password) => /[A-Za-z]/.test(password) },
+  { id: 'number', label: 'Al menos un número', test: (password) => /[0-9]/.test(password) },
+  {
+    id: 'match',
+    label: 'Las dos contraseñas coinciden',
+    test: (password, confirm) => confirm.length > 0 && password === confirm,
+  },
 ];
 
-function PasswordRules({ value }) {
+function PasswordRules({ password, confirm }) {
   return (
     <ul
       id="password-rules"
@@ -44,7 +74,7 @@ function PasswordRules({ value }) {
       className="grid gap-1 rounded-xl bg-surface p-space-sm text-body-sm"
     >
       {passwordRules.map((rule) => {
-        const met = rule.test(value);
+        const met = rule.test(password, confirm);
         return (
           <li
             key={rule.id}
@@ -71,13 +101,23 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     setError,
+    trigger,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, touchedFields, isSubmitting },
   } = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: { fullName: '', email: '', password: '', acceptTerms: false },
+    resolver,
+    // Valida cada campo al salir de él y, desde entonces, mientras se corrige
+    mode: 'onTouched',
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      acceptTerms: false,
+    },
   });
   const password = useWatch({ control, name: 'password' }) ?? '';
+  const confirmPassword = useWatch({ control, name: 'confirmPassword' }) ?? '';
 
   useEffect(() => {
     document.title = `Crear cuenta · ${PLATFORM_NAME}`;
@@ -89,7 +129,13 @@ export default function RegisterPage() {
   const onSubmit = async (values) => {
     setServerError(null);
     try {
-      await registerAccount(values);
+      // La confirmación no se envía: el servidor solo recibe los campos del contrato
+      await registerAccount({
+        fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+        acceptTerms: values.acceptTerms,
+      });
     } catch (error) {
       if (error instanceof ApiError && error.code === 'EMAIL_TAKEN') {
         setError('email', { type: 'taken', message: errorCodes.EMAIL_TAKEN.message });
@@ -151,14 +197,26 @@ export default function RegisterPage() {
           error={emailError}
           registration={register('email')}
         />
-        <div className="space-y-space-xs">
+        <div className="space-y-space-md">
           <PasswordField
             autoComplete="new-password"
             error={errors.password?.message}
             describedBy="password-rules"
-            registration={register('password')}
+            registration={register('password', {
+              // Si ya se tocó la confirmación, se revisa de nuevo al cambiar la contraseña
+              onChange: () => touchedFields.confirmPassword && trigger('confirmPassword'),
+            })}
           />
-          <PasswordRules value={password} />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirmar contraseña"
+            toggleName="confirmación de contraseña"
+            autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            describedBy="password-rules"
+            registration={register('confirmPassword')}
+          />
+          <PasswordRules password={password} confirm={confirmPassword} />
         </div>
 
         <div className="space-y-1">

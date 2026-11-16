@@ -68,6 +68,7 @@ export function TextField({
 export function PasswordField({
   id = 'password',
   label = 'Contraseña',
+  toggleName = 'contraseña',
   error,
   action,
   registration,
@@ -95,7 +96,7 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((value) => !value)}
-          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          aria-label={`${visible ? 'Ocultar' : 'Mostrar'} ${toggleName}`}
           aria-pressed={visible}
           className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-outline transition-colors hover:text-on-surface"
         >
