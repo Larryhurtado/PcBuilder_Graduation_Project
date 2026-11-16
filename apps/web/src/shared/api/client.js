@@ -1,5 +1,7 @@
 import { errorCodes, errorResponseSchema, isErrorCode } from '@hw/contracts';
 import { API_BASE } from '../config.js';
+import { refreshSession } from '../session/refresh.js';
+import { getAccessToken } from '../session/store.js';
 
 /** Error de la API con la forma `{ code, message, details, requestId }` del Diseño Integral. */
 export class ApiError extends Error {
@@ -41,11 +43,25 @@ function buildUrl(path, query) {
 
 /**
  * Llamada a la API (rutas relativas a /api/v1). Devuelve el JSON de la respuesta, o null si es 204.
- * Lanza ApiError ante cualquier fallo, incluidos los de red.
+ * Lanza ApiError ante cualquier fallo, incluidos los de red. Si hay sesión envía el token de
+ * acceso; ante `401 TOKEN_EXPIRED` renueva la sesión UNA vez y repite la petición.
  * @param {string} path
  * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, signal?: AbortSignal }} [options]
  */
-export async function apiFetch(path, { method = 'GET', query, body, signal } = {}) {
+export async function apiFetch(path, options = {}) {
+  try {
+    return await send(path, options);
+  } catch (error) {
+    const expired = error instanceof ApiError && error.code === 'TOKEN_EXPIRED';
+    if (!expired || path.startsWith('/auth/')) throw error;
+    // Si el refresco falla, la sesión queda cerrada y las guardas llevan a /ingresar
+    if (!(await refreshSession())) throw error;
+    return send(path, options);
+  }
+}
+
+async function send(path, { method = 'GET', query, body, signal } = {}) {
+  const token = getAccessToken();
   let response;
   try {
     response = await fetch(buildUrl(path, query), {
@@ -54,6 +70,7 @@ export async function apiFetch(path, { method = 'GET', query, body, signal } = {
       credentials: 'include',
       headers: {
         Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,

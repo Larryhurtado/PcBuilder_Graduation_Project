@@ -1,9 +1,12 @@
+import { useSessionStore } from './store.js';
+
 /**
- * Sesión del usuario actual. PROVISIONAL: devuelve siempre un visitante.
- * Se reemplaza con la autenticación real (token en memoria, refresco por cookie y GET /me).
- * La barra superior y las guardas por rol ya consumen esta forma:
- *   { user: null | { id, email, fullName, role: 'buyer' | 'seller' | 'admin' } }
+ * Sesión del usuario actual:
+ *   { user: null | { id, email, fullName, role: 'buyer' | 'seller' | 'admin' }, status, isLoading }
+ * `isLoading` es verdadero hasta saber si hay una sesión que restaurar (refresco al cargar).
  */
 export function useSession() {
-  return { user: null };
+  const user = useSessionStore((state) => state.user);
+  const status = useSessionStore((state) => state.status);
+  return { user, status, isLoading: status === 'loading' };
 }
