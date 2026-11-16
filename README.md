@@ -40,6 +40,35 @@ Se definen en un único archivo `.env` en la raíz del repositorio, que **se cre
 | `NODE_ENV`       | `development`           | Entorno de ejecución.                                                         |
 | `VITE_USE_MOCKS` | `false`                 | `true` hace que el navegador use los datos simulados (MSW) en vez de la API.  |
 
+### Cómo crear tu `.env`
+
+1. En la **raíz** del repositorio (junto a `package.json`) crea un archivo llamado exactamente `.env`. En PowerShell: `notepad .env` y acepta crearlo.
+2. Escribe, cambiando `TU_CLAVE` por la contraseña de tu usuario `postgres`:
+
+   ```
+   DATABASE_URL=postgres://postgres:TU_CLAVE@localhost:5432/hardware_validator
+   ```
+
+3. Si la clave tiene caracteres especiales, escríbelos codificados: `@` → `%40`, `#` → `%23`, `/` → `%2F`, `:` → `%3A`, `%` → `%25`.
+4. Sin espacios alrededor del `=` y sin comillas.
+5. Comprueba que git lo ignora: `git check-ignore .env` debe imprimir `.env`.
+
+El nombre de la base debe empezar por `hardware_validator`: el comando `db:reset` se niega a tocar cualquier otra.
+
+## Base de datos
+
+Los scripts de `db/` son la única fuente de verdad del esquema (no se edita la base a mano en pgAdmin). Se ejecutan con `psql`, que se encuentra solo si está en el PATH o en `C:\Program Files\PostgreSQL`.
+
+| Comando              | Qué hace                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `npm run db:reset`   | Borra y recrea la base de `DATABASE_URL`, carga los scripts `001` a `004` y aplica las migraciones.   |
+| `npm run db:verify`  | Ejecuta `005_verify.sql`: las 34 pruebas de integridad, permisos y reglas (todas deben decir `PASS`). |
+| `npm run db:migrate` | Aplica solo las migraciones nuevas de `db/migrations/` y las anota en `schema_migrations`.            |
+
+Para mirar las tablas puedes conectar pgAdmin 4 (o la extensión de PostgreSQL de VS Code) al mismo servidor; solo para consultar.
+
+Cuentas de demostración (datos ficticios): `comprador1@demo.test`, `vendedor1@demo.test`, `admin@demo.test`… todas con la contraseña `Demo#2026`.
+
 ## Estructura
 
 ```
