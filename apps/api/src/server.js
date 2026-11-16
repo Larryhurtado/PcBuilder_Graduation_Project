@@ -10,6 +10,13 @@ const pool = config.DATABASE_URL ? createPool(config.DATABASE_URL) : null;
 if (!pool) logger.warn('DATABASE_URL no está definida: /ready responderá 503.');
 
 const app = createApp({ config, pool, logger });
+
+// Las particiones mensuales de analítica se crean al arrancar (sin necesidad de un worker)
+if (pool) {
+  app.locals.analytics.ensurePartitions().catch((error) => {
+    logger.warn({ err: error }, 'No se pudieron crear las particiones de analítica.');
+  });
+}
 const server = app.listen(config.PORT, () => {
   logger.info(`API escuchando en http://localhost:${config.PORT}`);
 });

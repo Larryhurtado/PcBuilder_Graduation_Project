@@ -31,14 +31,15 @@ npm test                 # pruebas de todos los espacios de trabajo
 
 Se definen en un único archivo `.env` en la raíz del repositorio, que **se crea a mano en cada equipo y nunca se sube a git** (tampoco una plantilla). Todas son opcionales salvo `DATABASE_URL` cuando se use la base de datos.
 
-| Variable         | Valor por defecto       | Para qué                                                                      |
-| ---------------- | ----------------------- | ----------------------------------------------------------------------------- |
-| `DATABASE_URL`   | (ninguno)               | Conexión a PostgreSQL: `postgres://postgres:<clave>@localhost:5432/<nombre>`. |
-| `PORT`           | `3000`                  | Puerto de la API.                                                             |
-| `CORS_ORIGIN`    | `http://localhost:5173` | Orígenes permitidos, separados por coma.                                      |
-| `LOG_LEVEL`      | `info`                  | Nivel de registro de la API.                                                  |
-| `NODE_ENV`       | `development`           | Entorno de ejecución.                                                         |
-| `VITE_USE_MOCKS` | `false`                 | `true` hace que el navegador use los datos simulados (MSW) en vez de la API.  |
+| Variable           | Valor por defecto        | Para qué                                                                                       |
+| ------------------ | ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`     | (ninguno)                | Conexión a PostgreSQL: `postgres://postgres:<clave>@localhost:5432/<nombre>`.                  |
+| `PORT`             | `3000`                   | Puerto de la API.                                                                              |
+| `CORS_ORIGIN`      | `http://localhost:5173`  | Orígenes permitidos, separados por coma.                                                       |
+| `LOG_LEVEL`        | `info`                   | Nivel de registro de la API.                                                                   |
+| `ANALYTICS_SECRET` | (aleatorio por arranque) | Secreto (mínimo 16 caracteres) con el que se calcula el hash anónimo de sesión de los eventos. |
+| `NODE_ENV`         | `development`            | Entorno de ejecución.                                                                          |
+| `VITE_USE_MOCKS`   | `false`                  | `true` hace que el navegador use los datos simulados (MSW) en vez de la API.                   |
 
 ### Cómo crear tu `.env`
 

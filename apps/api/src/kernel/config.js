@@ -8,6 +8,8 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1).optional(),
   // Lista de orígenes permitidos separados por coma.
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  // Secreto para anonimizar la sesión de las métricas. Sin él se genera uno al arrancar.
+  ANALYTICS_SECRET: z.string().min(16).optional(),
 });
 
 /**

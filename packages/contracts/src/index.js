@@ -1,5 +1,6 @@
 export { errorCodes, errorCodeNames, isErrorCode, errorResponseSchema } from './errors.js';
 export { componentCategories, componentCategorySchema } from './catalog.js';
+export { eventTypeValues, eventBodySchema } from './events.js';
 export {
   offerSortValues,
   technicalFilterKeys,
