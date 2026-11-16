@@ -54,7 +54,7 @@ Los niveles 1 a 3 suman los 60 puntos (19 historias) del corte del 70 %. El nive
 
 | Erick | Larry |
 |---|---|
-| Instalar Node.js 22 LTS. Monorepo con workspaces, ESLint, Prettier, Vitest y `.env.example`. | Instalar Node.js. `apps/web` con Vite, Tailwind, Vitest, Testing Library y MSW. |
+| Instalar Node.js 22 LTS. Monorepo con workspaces, ESLint, Prettier y Vitest. | Instalar Node.js. `apps/web` con Vite, Tailwind, Vitest, Testing Library y MSW. |
 | **Copiar el paquete a `db/` y cargarlo:** `db:reset` y `db:verify` deben dar 34 de 34 (ver sección 5 por los detalles de Windows). Migración `006` para ampliar `readmodel.public_offers`. | **Importar las pantallas de Stitch** como referencia (`docs/design/`) y pasar sus colores, tipografías y espaciados a la configuración de Tailwind. |
 | `packages/contracts` con el DTO `ComponentSpecs` y los códigos de error. Empezar `compat-engine` con RC-01 a RC-04 y sus pruebas. | Router con las 28 rutas vacías y guardas por rol. Diseño base responsive (360, 768 y 1280 px) y barra superior. |
 

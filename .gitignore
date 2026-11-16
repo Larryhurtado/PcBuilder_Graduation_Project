@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+storage/
+# Ningún archivo .env se sube a git, tampoco los de ejemplo
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

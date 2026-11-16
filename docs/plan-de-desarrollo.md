@@ -187,8 +187,8 @@ Cada fase entrega algo que se puede demostrar de punta a punta. El orden sigue l
 
 **Erick (backend)**
 
-1. Monorepo con workspaces de npm, ESLint, Prettier, Vitest, `.editorconfig` y `.env.example`. Node 22 LTS.
-2. `.env.example` con la cadena de conexión al PostgreSQL local. Sin Docker.
+1. Monorepo con workspaces de npm, ESLint, Prettier, Vitest y `.editorconfig`. Node 22 LTS.
+2. Un `.env` local con la cadena de conexión al PostgreSQL local. **Ningún `.env` se sube a git, ni siquiera de ejemplo**: las variables están documentadas en el README. Sin Docker.
 3. **Base de datos (ya construida):** copiar a `db/` los scripts `001` a `005` y `run_all.sh` del paquete, cargarlos y comprobar que `005_verify.sql` da **34 de 34** (15 INV, 9 INT, 5 PER y 5 CMP). Agregar la migración `006_public_offers_detail.sql`, que amplía `readmodel.public_offers` con dirección, coordenadas y descripción para la ficha técnica (HU-12). Los scripts son de `psql`, no de `pg`: ver la sección 5 de [plan-semana-1.md](plan-semana-1.md).
 4. Esqueleto de la API:
    - `kernel/`: configuración validada con Zod, pool de `pg`, bus de eventos en memoria, errores de dominio y los puertos `StoragePort` y `EmailPort` con adaptadores S3 y SMTP.
