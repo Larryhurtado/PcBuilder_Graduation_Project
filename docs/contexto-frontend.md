@@ -174,7 +174,9 @@ Paquetes del monorepo que el frontend importa:
 
 ## 8. Motor de compatibilidad (`@hw/compat-engine`)
 
-**[Decidido el diseño; la firma exacta la confirma Erick el martes 17]**
+**[Implementado en `packages/compat-engine`: RC-01 a RC-08, 97 pruebas.]** Exporta `evaluate`, `constraintsFor`, `evaluateCandidate`, `estimateWatts`, `defaultParams`, `resolveParams`, `slotForCategory` y `STATUS` (`ok`, `fail`, `unknown`, `not_applicable`).
+
+**Para el selector "+ Elegir componente" (HU-06) use `evaluateCandidate`:** `evaluateCandidate(category, specs, build)` devuelve `{ status: 'ok' | 'fail' | 'unknown', results }` para una pieza candidata. Se ocultan las `fail` y las `unknown` se muestran con la etiqueta "no verificable". Así el filtrado se hace en el navegador con las especificaciones que ya trae `GET /offers?includeSpecs=true`, sin llamar a `/compat/constraints`. `constraintsFor(category, build)` devuelve los filtros para el servidor, con las claves `socket`, `ram_type`, `form_factor`, `cooler_socket`, `max_height_mm`, `max_length_mm`, `supports_form_factor`, `min_gpu_length_mm`, `min_cooler_height_mm` y `min_wattage_w`.
 
 ```js
 import { evaluate, constraintsFor, estimateWatts } from '@hw/compat-engine';
