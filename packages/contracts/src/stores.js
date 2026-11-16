@@ -64,6 +64,29 @@ export const storeResponseSchema = z.object({ store: storeSchema });
 /** Respuesta de POST /seller/convert: la tienda y la sesión nueva (token con rol vendedor). */
 export const convertResponseSchema = authResponseSchema.extend({ store: storeSchema });
 
+/** GET /stores: filtros opcionales sobre los comercios verificados. */
+export const publicStoresQuerySchema = z.object({
+  q: z.string().trim().min(2).max(80).optional(),
+  city: z.string().trim().min(2).max(80).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(12),
+});
+
+/** Lo que se muestra de un comercio verificado: nunca la razón social ni el NIT. */
+export const publicStoreSchema = z.object({
+  id: z.guid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  logoUrl: z.string().nullable(),
+  department: z.string().nullable(),
+  city: z.string().nullable(),
+  commercialCenter: z.string().nullable(),
+  address: z.string().nullable(),
+  whatsappE164: z.string().nullable(),
+  offersCount: z.number(),
+});
+
+export const publicStoresResponseSchema = z.object({ items: z.array(publicStoreSchema) });
+
 export const verificationStatusSchema = z.object({
   status: z.enum(verificationStatusValues),
   submittedAt: z.string().nullable(),

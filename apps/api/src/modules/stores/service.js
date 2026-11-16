@@ -59,6 +59,23 @@ export function createStoresService({ repository, identity, verification }) {
       return { ...session, store: toStore(store) };
     },
 
+    /** Directorio público: solo comercios verificados y solo datos de contacto comercial. */
+    async listPublic(query) {
+      const rows = await repository.listVerified(query);
+      return rows.map((row) => ({
+        id: row.id,
+        name: row.tradeName,
+        description: row.description ?? null,
+        logoUrl: logoUrl(row.logoKey),
+        department: row.department ?? null,
+        city: row.city ?? null,
+        commercialCenter: row.commercialCenter ?? null,
+        address: row.address ?? null,
+        whatsappE164: row.whatsappE164 ?? null,
+        offersCount: row.offersCount,
+      }));
+    },
+
     async getStore(userId) {
       return toStore(await requireStore(userId));
     },
