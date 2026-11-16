@@ -1,11 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { offers } from '../../mocks/data.js';
+import { findOffer } from '../../mocks/data.js';
 import { renderWithProviders } from '../../test/utils.jsx';
 import OfferCard from './OfferCard.jsx';
 
-const [ryzen, , usedRam] = offers;
+const ryzen = findOffer('AMD Ryzen 5 7600', 'TecnoPasarela Cali');
+const usedRam = findOffer('Kingston HyperX');
 
 afterEach(() => {
   vi.restoreAllMocks();

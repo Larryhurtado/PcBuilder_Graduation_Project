@@ -1,3 +1,4 @@
+import BuilderPage from '../features/builder/BuilderPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
 import AppLayout from './AppLayout.jsx';
 import { ComingSoonPage, NotFoundPage } from './pages.jsx';
@@ -5,7 +6,6 @@ import { ComingSoonPage, NotFoundPage } from './pages.jsx';
 // Pantallas pendientes (docs/contexto-frontend.md, sección 11). Cada una se reemplaza por su
 // componente real al construirla. Las guardas por rol se agregan con la autenticación.
 const pending = [
-  ['armador', 'Asistente de ensamblaje'],
   ['catalogo', 'Catálogo'],
   ['producto/:id', 'Ficha técnica'],
   ['tiendas', 'Directorio de tiendas'],
@@ -32,6 +32,7 @@ export const routes = [
     element: <AppLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: 'armador', element: <BuilderPage /> },
       ...pending.map(([path, title]) => ({ path, element: <ComingSoonPage title={title} /> })),
       { path: '*', element: <NotFoundPage /> },
     ],

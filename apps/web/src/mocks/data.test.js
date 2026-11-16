@@ -1,6 +1,6 @@
-import { specsSchemaByCategory } from '@hw/contracts';
+import { offerListItemSchema, specsSchemaByCategory } from '@hw/contracts';
 import { describe, expect, it } from 'vitest';
-import { offerSchema, storeCardSchema } from '../shared/api/schemas.js';
+import { storeCardSchema } from '../shared/api/schemas.js';
 import { offers, stores } from './data.js';
 
 // Los datos simulados deben cumplir los mismos esquemas que usará la API real.
@@ -8,7 +8,7 @@ describe('datos simulados', () => {
   it.each(offers.map((offer) => [offer.component.displayName, offer]))(
     'la oferta %s cumple el esquema',
     (_name, offer) => {
-      expect(offerSchema.safeParse(offer).success).toBe(true);
+      expect(offerListItemSchema.safeParse(offer).success).toBe(true);
       // las especificaciones cumplen el esquema estricto de @hw/contracts para su categoría
       const result = specsSchemaByCategory[offer.component.category].safeParse(
         offer.component.specs,

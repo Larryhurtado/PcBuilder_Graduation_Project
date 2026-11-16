@@ -87,7 +87,7 @@ describe('Inicio', () => {
   });
 
   it('si fallan las ofertas muestra el error con reintento, y al reintentar las carga', async () => {
-    server.use(http.get('*/api/v1/offers/featured', failure));
+    server.use(http.get('*/api/v1/offers', failure));
     renderApp('/');
     const section = screen.getByRole('region', { name: 'Ofertas Destacadas en Colombia' });
 
@@ -109,7 +109,9 @@ describe('Inicio', () => {
   });
 
   it('sin ofertas publicadas muestra un estado vacío', async () => {
-    server.use(http.get('*/api/v1/offers/featured', () => HttpResponse.json({ items: [] })));
+    server.use(
+      http.get('*/api/v1/offers', () => HttpResponse.json({ items: [], nextCursor: null })),
+    );
     renderApp('/');
     expect(await screen.findByText(/Todavía no hay ofertas publicadas/)).toBeInTheDocument();
   });
