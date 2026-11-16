@@ -241,6 +241,8 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Ver sección 6 | Sesión | 13 |
 | `GET /me` | Autenticado | Usuario actual | 13 |
 
+**`POST /events` [Implementado]:** cuerpo `{ offerId, type }` con `type` = `view` o `whatsapp_click` (`eventBodySchema` de `@hw/contracts`). Responde siempre **204 sin cuerpo**, incluso si el evento se descarta por repetido (misma sesión: 30 min para vistas, 10 min para clics). Acepta `application/json` y `text/plain` (para `navigator.sendBeacon`). Oferta no pública → 404; cuerpo inválido → 422; exceso de peticiones → 429 `RATE_LIMITED`. El clic a WhatsApp debe registrarse antes de abrir el enlace `wa.me`.
+
 **`GET /offers`: parámetros** **[Implementado. `offersQuerySchema` de `@hw/contracts` es el mismo esquema que usa la API: se puede reutilizar en el frontend. Los filtros técnicos exigen `category`; las piezas con el dato desconocido no se ocultan; el `cursor` es opaco y solo vale con el mismo `sort`; `includeSpecs=true` agrega `component.specs`. También funcionan `GET /offers/featured` y `GET /offers/{id}`. Respuestas: `offerListResponseSchema`, `featuredOffersResponseSchema` y `offerDetailSchema`.]**
 
 | Parámetro | Valores |

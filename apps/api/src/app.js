@@ -6,6 +6,7 @@ import { pinoHttp } from 'pino-http';
 import { errorHandler, notFoundHandler } from './http/error-handler.js';
 import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
+import { createAnalyticsModule } from './modules/analytics/index.js';
 import { createCatalogModule } from './modules/catalog/index.js';
 import { createOffersModule } from './modules/offers/index.js';
 
@@ -47,7 +48,15 @@ export function createApp({ config, pool = null, logger } = {}) {
     const db = createDb(pool);
     const catalog = createCatalogModule({ db });
     api.use(catalog.router);
-    api.use(createOffersModule({ db, catalog: catalog.facade }).router);
+    const offers = createOffersModule({ db, catalog: catalog.facade });
+    api.use(offers.router);
+    const analytics = createAnalyticsModule({
+      db,
+      offers: offers.facade,
+      secret: config.ANALYTICS_SECRET,
+    });
+    api.use(analytics.router);
+    app.locals.analytics = analytics.facade;
   }
   app.use('/api/v1', api);
 
