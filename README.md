@@ -39,6 +39,7 @@ Se definen en un único archivo `.env` en la raíz del repositorio, que **se cre
 | `LOG_LEVEL`        | `info`                   | Nivel de registro de la API.                                                                                                                       |
 | `JWT_SECRET`       | (aleatorio por arranque) | Secreto (mínimo 32 caracteres) para firmar los tokens de acceso. Sin él las sesiones se pierden al reiniciar la API; en producción es obligatorio. |
 | `ANALYTICS_SECRET` | (aleatorio por arranque) | Secreto (mínimo 16 caracteres) con el que se calcula el hash anónimo de sesión de los eventos.                                                     |
+| `STORAGE_DIR`      | `storage/` en la raíz    | Carpeta donde la API guarda las fotos que suben los vendedores (ignorada por git).                                                                 |
 | `NODE_ENV`         | `development`            | Entorno de ejecución.                                                                                                                              |
 | `VITE_USE_MOCKS`   | `false`                  | `true` hace que el navegador use los datos simulados (MSW) en vez de la API.                                                                       |
 
@@ -66,6 +67,8 @@ Los scripts de `db/` son la única fuente de verdad del esquema (no se edita la 
 | `npm run db:reset`   | Borra y recrea la base de `DATABASE_URL`, carga los scripts `001` a `004` y aplica las migraciones.   |
 | `npm run db:verify`  | Ejecuta `005_verify.sql`: las 34 pruebas de integridad, permisos y reglas (todas deben decir `PASS`). |
 | `npm run db:migrate` | Aplica solo las migraciones nuevas de `db/migrations/` y las anota en `schema_migrations`.            |
+
+La revisión de documentos de los comercios queda fuera de esta entrega, así que la verificación se simula: después de que una cuenta se convierte en vendedora, `npm run dev:approve-store -- correo@del.vendedor` deja su comercio verificado (completa NIT, WhatsApp, ciudad y dirección solo si faltan). Sin eso no puede publicar ofertas.
 
 Para mirar las tablas puedes conectar pgAdmin 4 (o la extensión de PostgreSQL de VS Code) al mismo servidor; solo para consultar.
 

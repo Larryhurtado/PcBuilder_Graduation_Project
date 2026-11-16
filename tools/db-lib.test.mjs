@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   adaptScriptForPlatform,
   assertSafeDatabaseName,
+  buildApproveStoreSql,
+  isValidEmail,
   parseDatabaseUrl,
   quoteIdent,
   sortSqlFiles,
@@ -85,5 +87,33 @@ describe('adaptScriptForPlatform', () => {
 describe('quoteIdent', () => {
   it('escapa comillas dobles', () => {
     expect(quoteIdent('a"b')).toBe('"a""b"');
+  });
+});
+
+describe('approve-store', () => {
+  it('acepta correos normales y rechaza texto que pueda romper el SQL', () => {
+    expect(isValidEmail('ana@correo.co')).toBe(true);
+    for (const bad of [
+      undefined,
+      '',
+      'sin-arroba',
+      "a'b@c.co",
+      'a@b.co; DROP TABLE x',
+      'a b@c.co',
+    ]) {
+      expect(isValidEmail(bad), String(bad)).toBe(false);
+    }
+  });
+
+  it('el SQL aprueba la solicitud, verifica el comercio y conserva lo que el vendedor ya completó', () => {
+    const sql = buildApproveStoreSql("'ana@correo.co'");
+    expect(sql).toContain("status = 'approved'");
+    expect(sql).toContain('is_verified = true');
+    expect(sql).toContain("email = 'ana@correo.co'");
+    for (const column of ['nit', 'whatsapp_e164', 'city', 'address']) {
+      expect(sql).toContain(`${column} = COALESCE(${column},`);
+    }
+    expect(sql).toContain('reviewed_by');
+    expect(sql).toContain('admin@demo.test');
   });
 });

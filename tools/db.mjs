@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import {
   adaptScriptForPlatform,
   assertSafeDatabaseName,
+  buildApproveStoreSql,
+  isValidEmail,
   nullDevice,
   parseDatabaseUrl,
   quoteIdent,
@@ -141,9 +143,28 @@ function verify(conn) {
   runFile(conn, '005_verify.sql');
 }
 
-const commands = { reset, verify, migrate };
+/**
+ * Simula la aprobación de un comercio (la revisión de documentos queda fuera de esta entrega):
+ * completa el perfil mínimo que exige la verificación, marca la solicitud como aprobada por el
+ * administrador de demostración y deja el comercio verificado.
+ */
+function approveStore(conn) {
+  const email = process.argv[3];
+  if (!isValidEmail(email)) fail('Uso: npm run dev:approve-store -- correo@del.vendedor');
+  const quoted = `'${email.replaceAll("'", "''")}'`;
+  const approved = sql(conn, conn.database, buildApproveStoreSql(quoted));
+  if (!approved) {
+    fail(
+      `No hay un comercio para ${email}. Debe haberse convertido en vendedor, ` +
+        'y debe existir el administrador admin@demo.test (carga de demostración).',
+    );
+  }
+  console.log(`Comercio verificado: ${approved}`);
+}
+
+const commands = { reset, verify, migrate, 'approve-store': approveStore };
 const command = process.argv[2];
-if (!commands[command]) fail('Uso: node tools/db.mjs <reset|verify|migrate>');
+if (!commands[command]) fail('Uso: node tools/db.mjs <reset|verify|migrate|approve-store>');
 
 loadEnv();
 const url = process.env.DATABASE_URL;

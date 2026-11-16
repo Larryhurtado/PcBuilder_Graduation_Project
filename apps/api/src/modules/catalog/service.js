@@ -63,6 +63,22 @@ export function createCatalogService({ repository }) {
       return rows.length > 0;
     },
 
+    /** Cascada del vendedor, paso 1: marcas con componentes activos en la categoría. */
+    async listBrands(category) {
+      const rows = await repository.listBrands(category);
+      return rows.map((row) => ({ id: row.id, name: row.name }));
+    },
+
+    /** Cascada del vendedor, paso 2: modelos de la marca. */
+    async listModels(category, brandId) {
+      const rows = await repository.listModels(category, brandId);
+      return rows.map((row) => ({
+        componentId: row.componentId,
+        model: row.model,
+        displayName: row.displayName,
+      }));
+    },
+
     /** Buscador global con precio mínimo y número de ofertas activas. */
     async search(term, limit = 8) {
       const rows = await repository.search(term.trim(), limit);

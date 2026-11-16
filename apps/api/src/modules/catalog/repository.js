@@ -64,6 +64,31 @@ export function createCatalogRepository(db) {
       return rows;
     },
 
+    /** Marcas que tienen al menos un componente activo en la categoría (paso 1 de la cascada, HU-20). */
+    async listBrands(category) {
+      const { rows } = await db.query(
+        `SELECT b.id, b.name::text AS name
+           FROM catalog.brands b
+          WHERE EXISTS (SELECT 1 FROM catalog.components c
+                         WHERE c.brand_id = b.id AND c.category = $1 AND c.status = 'active')
+          ORDER BY b.name`,
+        [category],
+      );
+      return rows;
+    },
+
+    /** Modelos activos de una marca en la categoría (paso 2 de la cascada). */
+    async listModels(category, brandId) {
+      const { rows } = await db.query(
+        `SELECT c.id AS component_id, c.model, c.display_name
+           FROM catalog.components c
+          WHERE c.category = $1 AND c.brand_id = $2 AND c.status = 'active'
+          ORDER BY c.model`,
+        [category, brandId],
+      );
+      return rows;
+    },
+
     /** Buscador global: texto contenido en el nombre o modelo, o similar (tolera errores de escritura). */
     async search(term, limit) {
       const { rows } = await db.query(

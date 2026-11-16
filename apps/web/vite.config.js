@@ -11,6 +11,8 @@ export default defineConfig({
     // El frontend llama siempre a rutas relativas (/api/v1/...): Vite las reenvía a la API local.
     proxy: {
       '/api': { target: 'http://localhost:3000', changeOrigin: true },
+      // Fotos de las ofertas (almacenamiento local de la API)
+      '/storage': { target: 'http://localhost:3000', changeOrigin: true },
     },
   },
   test: {

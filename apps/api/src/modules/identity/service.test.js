@@ -208,6 +208,30 @@ describe('refresh', () => {
   });
 });
 
+describe('setRole e issueAccessToken', () => {
+  it('setRole cambia el rol y issueAccessToken firma con el rol vigente', async () => {
+    const { service, repository, signer } = setup();
+    repository.setRole = vi.fn(async () => row({ role: 'seller' }));
+    expect((await service.setRole('u1', 'seller')).role).toBe('seller');
+    repository.findUserById.mockResolvedValueOnce(row({ role: 'seller' }));
+    const session = await service.issueAccessToken('u1');
+    expect(signer.verify(session.accessToken)).toEqual({ userId: 'u1', role: 'seller' });
+    expect(session).not.toHaveProperty('refreshToken');
+  });
+
+  it('con un usuario inexistente o deshabilitado falla', async () => {
+    const { service, repository } = setup({ users: [row({ status: 'disabled' })] });
+    repository.setRole = vi.fn(async () => null);
+    await expect(service.setRole('zzz', 'seller')).rejects.toMatchObject({
+      code: 'UNAUTHENTICATED',
+    });
+    await expect(service.issueAccessToken('zzz')).rejects.toMatchObject({
+      code: 'UNAUTHENTICATED',
+    });
+    await expect(service.issueAccessToken('u1')).rejects.toMatchObject({ code: 'ROLE_FORBIDDEN' });
+  });
+});
+
 describe('logout, getMe y authenticate', () => {
   it('logout revoca el token y es idempotente', async () => {
     const { service, repository } = setup();
