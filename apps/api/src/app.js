@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './http/error-handler.js';
 import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
 import { createCatalogModule } from './modules/catalog/index.js';
+import { createOffersModule } from './modules/offers/index.js';
 
 /**
  * Construye la aplicación Express sin arrancarla (así se puede probar con supertest).
@@ -44,7 +45,9 @@ export function createApp({ config, pool = null, logger } = {}) {
   const api = express.Router();
   if (pool) {
     const db = createDb(pool);
-    api.use(createCatalogModule({ db }).router);
+    const catalog = createCatalogModule({ db });
+    api.use(catalog.router);
+    api.use(createOffersModule({ db, catalog: catalog.facade }).router);
   }
   app.use('/api/v1', api);
 

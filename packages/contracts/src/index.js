@@ -1,6 +1,15 @@
 export { errorCodes, errorCodeNames, isErrorCode, errorResponseSchema } from './errors.js';
 export { componentCategories, componentCategorySchema } from './catalog.js';
 export {
+  offerSortValues,
+  technicalFilterKeys,
+  offersQuerySchema,
+  offerListItemSchema,
+  offerListResponseSchema,
+  featuredOffersResponseSchema,
+  offerDetailSchema,
+} from './offers.js';
+export {
   cpuSpecsSchema,
   motherboardSpecsSchema,
   ramSpecsSchema,

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCatalogRepository, escapeLike } from './repository.js';
+import { escapeLike } from '../../kernel/sql.js';
+import { createCatalogRepository } from './repository.js';
 
 describe('escapeLike', () => {
   it('escapa los comodines de ILIKE', () => {

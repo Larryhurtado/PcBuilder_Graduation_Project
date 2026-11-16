@@ -2,6 +2,7 @@
  * SQL del módulo catalog (Base de Datos Maestra). Es el único archivo del módulo que escribe SQL.
  * Las columnas llegan en camelCase porque `db.query` convierte el primer nivel de cada fila.
  */
+import { escapeLike } from '../../kernel/sql.js';
 
 const COMPONENT_COLUMNS = `
   c.id, c.category, b.name::text AS brand, c.model, c.display_name, c.release_year,
@@ -38,11 +39,6 @@ const SPEC_QUERIES = {
   storage: `SELECT s.component_id, s.storage_type, s.interface, s.capacity_gb, s.form_factor
           FROM catalog.storage_specs s WHERE s.component_id = ANY($1::uuid[])`,
 };
-
-/** Escapa % y _ para usar el texto del usuario dentro de un ILIKE. */
-export function escapeLike(text) {
-  return text.replace(/[\\%_]/g, (char) => `\\${char}`);
-}
 
 /** @param {{ query: Function }} db */
 export function createCatalogRepository(db) {
