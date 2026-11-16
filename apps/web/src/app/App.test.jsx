@@ -11,7 +11,7 @@ describe('App', () => {
   });
 
   it.each([
-    ['/armador', 'Asistente de ensamblaje'],
+    ['/armador', 'Arma tu PC'],
     ['/catalogo', 'Catálogo'],
     ['/producto/abc', 'Ficha técnica'],
     ['/vendedor/verificacion', 'Estado de verificación'],
