@@ -28,6 +28,8 @@ export const errorCodes = {
   // Propuestos
   VALIDATION_ERROR: { status: 422, message: 'Hay datos que no son válidos.' },
   UNAUTHENTICATED: { status: 401, message: 'Debes iniciar sesión para continuar.' },
+  INVALID_CREDENTIALS: { status: 401, message: 'Correo o contraseña incorrectos.' },
+  EMAIL_TAKEN: { status: 409, message: 'Ya existe una cuenta con ese correo.' },
   NOT_FOUND: { status: 404, message: 'No se encontró lo que buscas.' },
   INTERNAL_ERROR: { status: 500, message: 'Ocurrió un error inesperado. Intenta de nuevo.' },
 };

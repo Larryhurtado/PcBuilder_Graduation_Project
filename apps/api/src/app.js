@@ -8,6 +8,7 @@ import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
 import { createAnalyticsModule } from './modules/analytics/index.js';
 import { createCatalogModule } from './modules/catalog/index.js';
+import { createIdentityModule } from './modules/identity/index.js';
 import { createOffersModule } from './modules/offers/index.js';
 
 /**
@@ -46,6 +47,13 @@ export function createApp({ config, pool = null, logger } = {}) {
   const api = express.Router();
   if (pool) {
     const db = createDb(pool);
+    const identity = createIdentityModule({
+      db,
+      jwtSecret: config.JWT_SECRET,
+      secureCookie: config.NODE_ENV === 'production',
+    });
+    api.use(identity.router);
+    app.locals.auth = identity.middleware;
     const catalog = createCatalogModule({ db });
     api.use(catalog.router);
     const offers = createOffersModule({ db, catalog: catalog.facade });

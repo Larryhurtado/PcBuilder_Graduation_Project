@@ -1,5 +1,14 @@
 export { errorCodes, errorCodeNames, isErrorCode, errorResponseSchema } from './errors.js';
 export { componentCategories, componentCategorySchema } from './catalog.js';
+export {
+  PRIVACY_POLICY_VERSION,
+  userRoleValues,
+  registerBodySchema,
+  loginBodySchema,
+  userSchema,
+  authResponseSchema,
+  meResponseSchema,
+} from './auth.js';
 export { eventTypeValues, eventBodySchema } from './events.js';
 export {
   offerSortValues,

@@ -118,6 +118,9 @@ Paquetes del monorepo que el frontend importa:
 | `ROLE_FORBIDDEN` | 403 | No tienes permiso para esta acción. |
 | `TOKEN_EXPIRED` | 401 | La sesión expiró; se renueva con el refresco. |
 | `RATE_LIMITED` | 429 | Demasiados intentos. Intenta de nuevo en unos minutos. |
+| `EMAIL_TAKEN` **[Propuesto]** | 409 | Ya existe una cuenta con ese correo. |
+| `INVALID_CREDENTIALS` **[Propuesto]** | 401 | Correo o contraseña incorrectos. |
+| `UNAUTHENTICATED` **[Propuesto]** | 401 | Debes iniciar sesión para continuar. |
 | `VALIDATION_ERROR` **[Propuesto]** | 400 o 422 | Mostrar los errores por campo que vengan en `details`. |
 
 ---
@@ -280,15 +283,17 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 
 **`POST /events` [Propuesto]:** cuerpo `{ "offerId": "uuid", "type": "view" | "whatsapp_click" }`, respuesta `204`. Se envía con `navigator.sendBeacon` (cuerpo JSON como `Blob` con tipo `application/json`) para que no se pierda al abrir WhatsApp.
 
-**Auth [Propuesto]:**
+**Auth [Implementado].** Esquemas en `@hw/contracts`: `registerBodySchema`, `loginBodySchema`, `authResponseSchema`, `meResponseSchema` (se pueden reutilizar en los formularios con react-hook-form).
 
 | Ruta | Cuerpo | Respuesta |
 |---|---|---|
-| `POST /auth/register` | `{ email, password, fullName, acceptTerms: true, privacyPolicyVersion: "v1.0" }` | `201 { user, accessToken }` |
-| `POST /auth/login` | `{ email, password }` | `200 { user, accessToken }` + cookie de refresco |
-| `POST /auth/refresh` | (cookie) | `200 { accessToken }` |
-| `POST /auth/logout` | (cookie) | `204` |
-| `GET /me` | | `{ id, email, fullName, role, status }` |
+| `POST /auth/register` | `{ email, password, fullName, acceptTerms: true }` (la versión de la política la fija el servidor; no se envía rol) | `201 { accessToken, expiresIn, user }` + cookie de refresco |
+| `POST /auth/login` | `{ email, password }` | `200 { accessToken, expiresIn, user }` + cookie de refresco |
+| `POST /auth/refresh` | (cookie) | `200 { accessToken, expiresIn, user }` + cookie rotada |
+| `POST /auth/logout` | (cookie) | `204` (siempre; borra la cookie) |
+| `GET /me` | encabezado `Authorization: Bearer <accessToken>` | `200 { user }` |
+
+`user` = `{ id, email, fullName, role }`. Reglas de la clave al registrarse: 8 a 72 caracteres, al menos una letra y un número. Errores propios: `EMAIL_TAKEN` (409), `INVALID_CREDENTIALS` (401, mismo mensaje para clave errónea y correo inexistente), `ROLE_FORBIDDEN` (403, cuenta deshabilitada), `UNAUTHENTICATED` (401, sin token, token inválido o refresco inválido), `TOKEN_EXPIRED` (401, token de acceso vencido: refrescar), `RATE_LIMITED` (429, 20 intentos cada 15 min por IP). La cookie `refresh_token` es `HttpOnly`, `SameSite=Lax`, ruta `/api/v1/auth`, 7 días; cada refresco la rota, y reusar una ya usada cierra todas las sesiones de la cuenta. Las peticiones con cookie necesitan `credentials: 'include'` (con el proxy de Vite `/api` funciona sin más).
 
 ### Niveles 2 y 3: vendedor
 
