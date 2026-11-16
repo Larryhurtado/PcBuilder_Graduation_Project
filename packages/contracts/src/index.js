@@ -34,6 +34,32 @@ export {
   analyticsSummaryQuerySchema,
   analyticsSummarySchema,
 } from './seller-offers.js';
+export {
+  buildItemSchema,
+  buildItemsSchema,
+  validateBodySchema,
+  constraintsBodySchema,
+  ruleResultSchema,
+  evaluationSchema,
+  buildComponentSchema,
+  validateResponseSchema,
+  constraintsResponseSchema,
+} from './compat.js';
+export {
+  SHARE_CODE_PATTERN,
+  savedItemInputSchema,
+  saveBuildBodySchema,
+  shareCodeParamsSchema,
+  buildIdParamsSchema,
+  savedItemSchema,
+  savedBuildSchema,
+  savedBuildResponseSchema,
+  buildSummarySchema,
+  buildListResponseSchema,
+  wishlistParamsSchema,
+  wishlistItemSchema,
+  wishlistResponseSchema,
+} from './builds.js';
 export { eventTypeValues, eventBodySchema } from './events.js';
 export {
   offerSortValues,

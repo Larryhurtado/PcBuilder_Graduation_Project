@@ -238,8 +238,8 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 | `GET /offers` | Público | Catálogo con filtros, orden y paginación | 02, 09, 10, 12 |
 | `GET /offers/featured` | Público | Ofertas destacadas del inicio | 02 |
 | `GET /offers/{id}` | Público | Detalle de una oferta | 08, 12 |
-| `POST /compat/constraints` | Público | Filtros del selector (opcional: también se calculan en el navegador) | 06 |
-| `POST /compat/validate` | Público | Validación de autoridad (opcional esta semana) | 04, 05 |
+| `POST /compat/constraints` | Público | Filtros del selector (opcional: también se calculan en el navegador). **Implementado** | 06 |
+| `POST /compat/validate` | Público | Validación de autoridad (opcional). **Implementado** | 04, 05 |
 | `POST /events` | Público | Registrar vista o clic a WhatsApp | 08 |
 | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Ver sección 6 | Sesión | 13 |
 | `GET /me` | Autenticado | Usuario actual | 13 |
@@ -294,6 +294,35 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 | `GET /me` | encabezado `Authorization: Bearer <accessToken>` | `200 { user }` |
 
 `user` = `{ id, email, fullName, role }`. Reglas de la clave al registrarse: 8 a 72 caracteres, al menos una letra y un número. Errores propios: `EMAIL_TAKEN` (409), `INVALID_CREDENTIALS` (401, mismo mensaje para clave errónea y correo inexistente), `ROLE_FORBIDDEN` (403, cuenta deshabilitada), `UNAUTHENTICATED` (401, sin token, token inválido o refresco inválido), `TOKEN_EXPIRED` (401, token de acceso vencido: refrescar), `RATE_LIMITED` (429, 20 intentos cada 15 min por IP). La cookie `refresh_token` es `HttpOnly`, `SameSite=Lax`, ruta `/api/v1/auth`, 7 días; cada refresco la rota, y reusar una ya usada cierra todas las sesiones de la cuenta. Las peticiones con cookie necesitan `credentials: 'include'` (con el proxy de Vite `/api` funciona sin más).
+
+**Compatibilidad en el servidor [Implementado].** Las dos rutas son públicas (120 peticiones por minuto por IP) y **no aceptan especificaciones del cliente**: se envían solo `{ category, componentId }` y el servidor carga las especificaciones del catálogo. Máximo una pieza por categoría. Esquemas: `validateBodySchema`, `constraintsBodySchema`, `validateResponseSchema`, `constraintsResponseSchema`.
+
+| Ruta | Cuerpo | Respuesta |
+|---|---|---|
+| `POST /compat/validate` | `{ items: [{ category, componentId }] }` | `{ results, summary, estimatedWatts, recommendedPsuW, items: [{ category, componentId, brand, model, displayName }] }` (el mismo cálculo de `evaluate` más los nombres de las piezas) |
+| `POST /compat/constraints` | `{ category, items }` | `{ category, constraints }` (las claves son las de los filtros de `GET /offers`) |
+
+Un componente inexistente da `404 COMPONENT_NOT_FOUND` (con `details.componentId`) y uno en otra categoría `422 VALIDATION_ERROR`. El navegador sigue calculando con `@hw/compat-engine`; el servidor es la validación de autoridad al guardar.
+
+**Armados guardados, enlace compartible y favoritos [Implementado].** Esquemas en `@hw/contracts`: `saveBuildBodySchema`, `savedBuildResponseSchema`, `buildListResponseSchema`, `shareCodeParamsSchema`, `wishlistResponseSchema`.
+
+| Ruta | Acceso | Uso |
+|---|---|---|
+| `POST /builds` | Con sesión o sin ella | Guardar un armado. Cuerpo `{ name?, items: [{ category, componentId, offerId? }], draft? }` → `201 { build, evaluation }`. Con sesión queda en la cuenta; **sin sesión queda anónimo** y solo se abre con su enlace (30 por hora por IP). |
+| `GET /builds/{shareCode}` | Público | Abrir un armado compartido (10 letras y números). Con `Authorization` dice si es del lector (`build.isOwner`). Devuelve la evaluación **actual** del motor. |
+| `POST /builds/{shareCode}/clone` | Autenticado | "Editar copia": copia el armado a la cuenta (`name + " (copia)"`) → `201 { build, evaluation }`. |
+| `GET /me/builds` | Autenticado | Lista: `{ items: [{ id, name, shareCode, estimatedWatts, totalPriceCop, itemCount, createdAt, updatedAt }] }`. |
+| `PUT /me/builds/{id}` | Dueño | Reemplaza nombre y piezas (mismo cuerpo que `POST`) → `{ build, evaluation }`. |
+| `DELETE /me/builds/{id}` | Dueño | `204`; el enlace deja de funcionar. |
+| `GET /me/wishlist` | Autenticado | `{ items: [{ componentId, category, brand, model, displayName, minPriceCop, offersCount, addedAt }] }`. |
+| `PUT /me/wishlist/{componentId}` | Autenticado | Agrega a favoritos (idempotente) → `204`. |
+| `DELETE /me/wishlist/{componentId}` | Autenticado | Quita (idempotente) → `204`. |
+
+- **Validación al guardar:** el servidor vuelve a evaluar. Con incompatibilidades responde `422 BUILD_INCOMPATIBLE` con `details.incompatible: [{ code, message }]`, **salvo que se envíe `draft: true`**, que lo guarda como borrador (la `evaluation` de la respuesta trae el aviso). Los datos faltantes (`unknown`) no impiden guardar.
+- **Precios:** el cliente nunca envía precios. Si una pieza lleva `offerId`, el servidor guarda el precio de esa oferta en ese momento (`unitPriceCop`); el total es la suma de esos precios y **no cambia aunque la oferta cambie después**. Una oferta pausada o de otro componente se rechaza (`404` / `422`).
+- **`build`:** `{ id, name, shareCode, estimatedWatts, totalPriceCop, createdAt, updatedAt, isOwner, items: [{ category, componentId, brand, model, displayName, offerId, unitPriceCop }] }`.
+- **PDF de la cotización:** se genera en el navegador (ADR-12) con los datos de `GET /builds/{shareCode}`; la API no lo produce.
+- `GET /me/builds`, `PUT`, `DELETE` y los favoritos piden sesión; con token vencido responden `401 TOKEN_EXPIRED` (refrescar y reintentar).
 
 ### Niveles 2 y 3: vendedor
 
