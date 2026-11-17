@@ -8,6 +8,7 @@ import {
 import { http, HttpResponse } from 'msw';
 import { authResponseFor, demoUsers, updateMockUser, userFromRequest } from './auth.js';
 import { stores as dataStores } from './data.js';
+import { countOffers, createSellerOffersHandlers, resetMockSellerOffers } from './sellerOffers.js';
 
 const api = (path) => `*/api/v1${path}`;
 
@@ -47,6 +48,7 @@ let stores = seed();
 /** Vuelve al comercio de demostración y quita los creados durante la prueba. */
 export function resetMockSeller() {
   stores = seed();
+  resetMockSellerOffers();
 }
 
 const newStore = ({ legalName, tradeName }, userId) => ({
@@ -164,15 +166,16 @@ export const sellerHandlers = [
       const stats = statsFor(day);
       if (stats) daily.push({ day, ...stats });
     }
-    const isDemo = guard.user.id === demoSeller.id;
     return HttpResponse.json({
       totals: {
         views: daily.reduce((sum, item) => sum + item.views, 0),
         whatsappClicks: daily.reduce((sum, item) => sum + item.whatsappClicks, 0),
-        activeOffers: isDemo ? 10 : 0,
-        pausedOffers: isDemo ? 1 : 0,
+        ...countOffers(guard.user.id),
       },
       daily,
     });
   }),
+
+  // Inventario: listar, editar, pausar y eliminar ofertas
+  ...createSellerOffersHandlers(sellerGuard),
 ];

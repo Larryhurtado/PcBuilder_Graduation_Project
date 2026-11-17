@@ -223,9 +223,9 @@ describe('Guardas de ruta y cierre de sesión', () => {
 
   it('el vendedor sí entra a su panel', async () => {
     signInMock(seller);
-    renderApp('/vendedor/inventario');
+    renderApp('/vendedor/negocio');
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Inventario' }),
+      await screen.findByRole('heading', { level: 1, name: 'Mi negocio' }),
     ).toBeInTheDocument();
   });
 

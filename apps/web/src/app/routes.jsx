@@ -9,6 +9,7 @@ import HomePage from '../features/home/HomePage.jsx';
 import ProductPage from '../features/product/ProductPage.jsx';
 import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
 import DashboardPage from '../features/seller-portal/DashboardPage.jsx';
+import InventoryPage from '../features/seller-portal/InventoryPage.jsx';
 import SellerLayout from '../features/seller-portal/SellerLayout.jsx';
 import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
 import StoresPage from '../features/stores/StoresPage.jsx';
@@ -29,7 +30,6 @@ const pendingPublic = [
 
 // Requieren sesión de vendedor; viven dentro del marco del portal (SellerLayout)
 const pendingSeller = [
-  ['vendedor/inventario', 'Inventario'],
   ['vendedor/publicar', 'Publicar producto'],
   ['vendedor/negocio', 'Mi negocio'],
   ['vendedor/verificacion', 'Estado de verificación'],
@@ -73,6 +73,7 @@ export const routes = [
             element: <SellerLayout />,
             children: [
               { path: 'vendedor', element: <DashboardPage /> },
+              { path: 'vendedor/inventario', element: <InventoryPage /> },
               ...pendingSeller.map(soon),
             ],
           },
