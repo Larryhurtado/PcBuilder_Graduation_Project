@@ -8,11 +8,14 @@ import FavoritesPage from '../features/favorites/FavoritesPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
 import ProductPage from '../features/product/ProductPage.jsx';
 import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
+import DashboardPage from '../features/seller-portal/DashboardPage.jsx';
+import SellerLayout from '../features/seller-portal/SellerLayout.jsx';
 import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
 import StoresPage from '../features/stores/StoresPage.jsx';
 import RequireAuth from '../shared/session/RequireAuth.jsx';
 import AppLayout from './AppLayout.jsx';
 import { ComingSoonPage, NotFoundPage } from './pages.jsx';
+import Root from './Root.jsx';
 
 // Pantallas pendientes (docs/contexto-frontend.md, sección 11). Cada una se reemplaza por su
 // componente real al construirla.
@@ -24,9 +27,8 @@ const pendingPublic = [
   ['atribucion', 'Atribución de datos'],
 ];
 
-// Requieren sesión de vendedor
+// Requieren sesión de vendedor; viven dentro del marco del portal (SellerLayout)
 const pendingSeller = [
-  ['vendedor', 'Panel del vendedor'],
   ['vendedor/inventario', 'Inventario'],
   ['vendedor/publicar', 'Publicar producto'],
   ['vendedor/negocio', 'Mi negocio'],
@@ -37,28 +39,45 @@ const soon = ([path, title]) => ({ path, element: <ComingSoonPage title={title} 
 
 export const routes = [
   {
-    element: <AppLayout />,
+    element: <Root />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'armador', element: <BuilderPage /> },
-      { path: 'catalogo', element: <CatalogPage /> },
-      { path: 'producto/:id', element: <ProductPage /> },
-      { path: 'tiendas', element: <StoresPage /> },
-      { path: 'tiendas/:id', element: <StoreProfilePage /> },
-      { path: 'ingresar', element: <LoginPage /> },
-      { path: 'registro', element: <RegisterPage /> },
-      { path: 'vender', element: <BecomeSellerPage /> },
-      ...pendingPublic.map(soon),
       {
-        element: <RequireAuth />,
+        element: <AppLayout />,
         children: [
-          { path: 'cuenta', element: <AccountPage /> },
-          { path: 'cuenta/armados', element: <SavedBuildsPage /> },
-          { path: 'cuenta/favoritos', element: <FavoritesPage /> },
+          { index: true, element: <HomePage /> },
+          { path: 'armador', element: <BuilderPage /> },
+          { path: 'catalogo', element: <CatalogPage /> },
+          { path: 'producto/:id', element: <ProductPage /> },
+          { path: 'tiendas', element: <StoresPage /> },
+          { path: 'tiendas/:id', element: <StoreProfilePage /> },
+          { path: 'ingresar', element: <LoginPage /> },
+          { path: 'registro', element: <RegisterPage /> },
+          { path: 'vender', element: <BecomeSellerPage /> },
+          ...pendingPublic.map(soon),
+          {
+            element: <RequireAuth />,
+            children: [
+              { path: 'cuenta', element: <AccountPage /> },
+              { path: 'cuenta/armados', element: <SavedBuildsPage /> },
+              { path: 'cuenta/favoritos', element: <FavoritesPage /> },
+            ],
+          },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
-      { element: <RequireAuth roles={['seller']} />, children: pendingSeller.map(soon) },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        // El portal del vendedor tiene su propio marco (menú lateral y barra), sin la barra pública
+        element: <RequireAuth roles={['seller']} />,
+        children: [
+          {
+            element: <SellerLayout />,
+            children: [
+              { path: 'vendedor', element: <DashboardPage /> },
+              ...pendingSeller.map(soon),
+            ],
+          },
+        ],
+      },
     ],
   },
 ];

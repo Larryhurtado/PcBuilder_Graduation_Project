@@ -112,9 +112,7 @@ describe('Ingresar: resultado', () => {
     await fill(user, seller.email, seller.password);
     await submit(user);
     await waitFor(() => expect(location(router)).toBe('/vendedor'));
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Panel del vendedor' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
   });
 
   it('vuelve a la página que se intentaba abrir (?next=)', async () => {
