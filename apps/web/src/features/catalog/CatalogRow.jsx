@@ -5,7 +5,8 @@ import CategoryIcon from '../../shared/ui/CategoryIcon.jsx';
 import ConditionChip from '../../shared/ui/ConditionChip.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import WhatsAppLink from '../../shared/ui/WhatsAppLink.jsx';
-import { AddToBuildButton, FavoriteButton } from './OfferActions.jsx';
+import FavoriteButton from '../favorites/FavoriteButton.jsx';
+import { AddToBuildButton } from './OfferActions.jsx';
 
 /**
  * Oferta del catálogo en vista compacta: una fila con lo esencial para comparar precios.
@@ -59,7 +60,7 @@ export default function CatalogRow({ offer, inBuild, replaces, onAdd }) {
         <div className="relative z-10 flex items-center gap-space-xs">
           <AddToBuildButton offer={offer} inBuild={inBuild} replaces={replaces} onAdd={onAdd} />
           <WhatsAppLink offer={offer} variant="inline" />
-          <FavoriteButton name={component.displayName} className="hidden sm:flex" />
+          <FavoriteButton component={component} className="hidden sm:flex" />
         </div>
       </div>
     </article>

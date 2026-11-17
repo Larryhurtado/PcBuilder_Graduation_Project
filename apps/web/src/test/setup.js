@@ -3,7 +3,9 @@ import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { resetMockAuth } from '../mocks/auth.js';
 import { resetMockBuilds } from '../mocks/builds.js';
+import { resetMockWishlist } from '../mocks/wishlist.js';
 import { server } from '../mocks/node.js';
+import { dismissNotice } from '../shared/notices.js';
 import { resetSession } from '../shared/session/actions.js';
 
 // jsdom no implementa <dialog>: se simula lo mínimo (open, showModal, close y el evento close).
@@ -24,6 +26,8 @@ afterEach(() => {
   server.resetHandlers();
   resetMockAuth();
   resetMockBuilds();
+  resetMockWishlist();
+  dismissNotice();
   resetSession();
   cleanup();
   sessionStorage.clear();

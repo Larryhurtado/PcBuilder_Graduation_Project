@@ -207,7 +207,9 @@ describe('Guardas de ruta y cierre de sesión', () => {
   it('con sesión entra a la página de cuenta', async () => {
     signInMock(buyer);
     renderApp('/cuenta/favoritos');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Favoritos' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Mis componentes favoritos' }),
+    ).toBeInTheDocument();
   });
 
   it('el panel del vendedor no es para un comprador', async () => {

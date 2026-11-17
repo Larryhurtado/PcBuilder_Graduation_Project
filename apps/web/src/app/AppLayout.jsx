@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet } from 'react-router';
 import { bootstrapSession } from '../shared/session/actions.js';
+import NoticeHost from '../shared/ui/NoticeHost.jsx';
 import Footer from './Footer.jsx';
 import Navbar from './Navbar.jsx';
 
@@ -24,6 +25,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <Footer />
+      <NoticeHost />
     </div>
   );
 }

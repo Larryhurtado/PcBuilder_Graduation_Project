@@ -63,12 +63,14 @@ describe('Catálogo: resultados', () => {
     expect(document.body).not.toHaveTextContent(/Medellín|Monterrey/);
   });
 
-  it('los favoritos llegan después: el corazón está deshabilitado', async () => {
+  it('sin sesión, el corazón de cada tarjeta lleva a ingresar y vuelve al catálogo', async () => {
     renderApp('/catalogo');
     await loaded();
-    const hearts = results().getAllByRole('button', { name: /en favoritos \(próximamente\)/ });
+    const hearts = await results().findAllByRole('link', {
+      name: /^Ingresa para guardar .* en favoritos$/,
+    });
     expect(hearts).toHaveLength(12);
-    expect(hearts.every((heart) => heart.disabled)).toBe(true);
+    expect(hearts[0]).toHaveAttribute('href', '/ingresar?next=%2Fcatalogo');
   });
 
   it('la vista compacta muestra las mismas ofertas en filas', async () => {

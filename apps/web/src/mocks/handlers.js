@@ -5,10 +5,10 @@
 // las pantallas no cambian, porque llaman a la API siempre por /api/v1.
 import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
-import { accountHandlers } from './account.js';
 import { authHandlers } from './auth.js';
 import { buildsHandlers } from './builds.js';
 import { components, publicStores } from './data.js';
+import { wishlistHandlers } from './wishlist.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
 const api = (path) => `*/api/v1${path}`;
@@ -16,8 +16,8 @@ const api = (path) => `*/api/v1${path}`;
 export const handlers = [
   // Sesión: login, refresco, cierre y usuario actual
   ...authHandlers,
-  // Cuenta: armados guardados y favoritos
-  ...accountHandlers,
+  // Cuenta: favoritos
+  ...wishlistHandlers,
   // Armados guardados: guardar, abrir por enlace, listar y eliminar
   ...buildsHandlers,
 
