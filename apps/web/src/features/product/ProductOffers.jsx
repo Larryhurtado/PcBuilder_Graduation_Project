@@ -1,17 +1,9 @@
 import { useMemo, useState } from 'react';
-import { formatCOP, formatLocation, formatWarranty } from '../../shared/lib/format.js';
+import { formatCOP, formatLocation, formatWarranty, initials } from '../../shared/lib/format.js';
 import ConditionChip from '../../shared/ui/ConditionChip.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import WhatsAppLink from '../../shared/ui/WhatsAppLink.jsx';
 import { AddToBuildButton } from '../catalog/OfferActions.jsx';
-
-const initials = (name) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
 
 const place = ({ commercialCenter, city, department }) =>
   [commercialCenter, formatLocation({ city, department })].filter(Boolean).join(' • ');

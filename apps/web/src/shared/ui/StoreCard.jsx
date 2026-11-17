@@ -1,15 +1,7 @@
 import { Link } from 'react-router';
-import { formatLocation } from '../lib/format.js';
+import { formatLocation, initials } from '../lib/format.js';
 import Icon from './Icon.jsx';
 import StoreWhatsAppLink from './StoreWhatsAppLink.jsx';
-
-const initials = (name) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
 
 /** Versión del directorio: iniciales, ubicación completa, ofertas activas, catálogo y WhatsApp. */
 function DetailedStoreCard({ store }) {

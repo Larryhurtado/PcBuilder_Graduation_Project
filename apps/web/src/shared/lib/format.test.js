@@ -6,7 +6,22 @@ import {
   formatLocation,
   formatPhone,
   formatWarranty,
+  initials,
 } from './format.js';
+
+describe('initials', () => {
+  it('toma las dos primeras palabras en mayúscula', () => {
+    expect(initials('TecnoPasarela Cali')).toBe('TC');
+    expect(initials('laura gómez pérez')).toBe('LG');
+    expect(initials('  Unilago  ')).toBe('U');
+  });
+
+  it('tolera nombres vacíos o ausentes', () => {
+    expect(initials('')).toBe('');
+    expect(initials(null)).toBe('');
+    expect(initials(undefined)).toBe('');
+  });
+});
 
 describe('formatPhone', () => {
   it('agrupa un celular colombiano en bloques legibles', () => {
