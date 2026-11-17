@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
-import { logout } from '../../shared/session/actions.js';
 import { initials } from '../../shared/lib/format.js';
+import { logout } from '../../shared/session/actions.js';
 import Icon from '../../shared/ui/Icon.jsx';
 import { useMyBuilds, useMyWishlist } from './queries.js';
 
@@ -8,6 +8,8 @@ export const roleLabels = { buyer: 'Comprador', seller: 'Vendedor', admin: 'Admi
 
 const itemClass =
   'flex min-h-11 w-full items-center gap-space-sm rounded-xl px-space-sm text-label-md transition-colors motion-reduce:transition-none';
+const idle = 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface';
+const active = 'bg-primary-container text-on-primary-container';
 
 /** Cantidad al lado de un enlace: espera con "…" y se omite si la consulta falla. */
 function Count({ query }) {
@@ -21,12 +23,16 @@ function Count({ query }) {
 
 /**
  * Tarjeta de la persona y menú de la cuenta. Los contadores salen de GET /me/builds y
- * GET /me/wishlist.
- * @param {{ user: { id: string, email: string, fullName: string, role: 'buyer' | 'seller' | 'admin' } }} props
+ * GET /me/wishlist. `current` marca la página en la que está ('profile', 'builds' o 'wishlist').
+ * @param {{ user: { id: string, email: string, fullName: string, role: 'buyer' | 'seller' | 'admin' }, current?: 'profile' | 'builds' | 'wishlist' }} props
  */
-export default function AccountSidebar({ user }) {
+export default function AccountSidebar({ user, current = 'profile' }) {
   const builds = useMyBuilds(user.id);
   const wishlist = useMyWishlist(user.id);
+  const link = (key) => ({
+    className: `${itemClass} ${current === key ? active : idle}`,
+    'aria-current': current === key ? 'page' : undefined,
+  });
 
   return (
     <div className="space-y-space-md">
@@ -54,30 +60,20 @@ export default function AccountSidebar({ user }) {
       <nav aria-label="Menú de la cuenta" className="rounded-2xl bg-surface-container p-space-xs">
         <ul className="space-y-1">
           <li>
-            <Link
-              to="/cuenta"
-              aria-current="page"
-              className={`${itemClass} bg-primary-container text-on-primary-container`}
-            >
+            <Link to="/cuenta" {...link('profile')}>
               <Icon name="person" className="text-[20px]" />
               Mi perfil
             </Link>
           </li>
           <li>
-            <Link
-              to="/cuenta/armados"
-              className={`${itemClass} text-on-surface-variant hover:bg-surface-variant hover:text-on-surface`}
-            >
+            <Link to="/cuenta/armados" {...link('builds')}>
               <Icon name="computer" className="text-[20px]" />
               Mis armados
               <Count query={builds} />
             </Link>
           </li>
           <li>
-            <Link
-              to="/cuenta/favoritos"
-              className={`${itemClass} text-on-surface-variant hover:bg-surface-variant hover:text-on-surface`}
-            >
+            <Link to="/cuenta/favoritos" {...link('wishlist')}>
               <Icon name="favorite" className="text-[20px]" />
               Favoritos
               <Count query={wishlist} />
@@ -85,21 +81,14 @@ export default function AccountSidebar({ user }) {
           </li>
           {user.role === 'buyer' && (
             <li>
-              <Link
-                to="/vender"
-                className={`${itemClass} text-on-surface-variant hover:bg-surface-variant hover:text-on-surface`}
-              >
+              <Link to="/vender" className={`${itemClass} ${idle}`}>
                 <Icon name="storefront" className="text-[20px]" />
                 Ser vendedor
               </Link>
             </li>
           )}
           <li className="border-t border-outline-variant/40 pt-1">
-            <button
-              type="button"
-              onClick={logout}
-              className={`${itemClass} text-on-surface-variant hover:bg-surface-variant hover:text-on-surface`}
-            >
+            <button type="button" onClick={logout} className={`${itemClass} ${idle}`}>
               <Icon name="logout" className="text-[20px]" />
               Cerrar sesión
             </button>

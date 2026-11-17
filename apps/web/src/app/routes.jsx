@@ -2,6 +2,7 @@ import AccountPage from '../features/account/AccountPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import RegisterPage from '../features/auth/RegisterPage.jsx';
 import BuilderPage from '../features/builder/BuilderPage.jsx';
+import SavedBuildsPage from '../features/builds/SavedBuildsPage.jsx';
 import CatalogPage from '../features/catalog/CatalogPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
 import ProductPage from '../features/product/ProductPage.jsx';
@@ -23,10 +24,7 @@ const pendingPublic = [
 ];
 
 // Requieren sesión: cualquier cuenta
-const pendingAccount = [
-  ['cuenta/armados', 'Armados guardados'],
-  ['cuenta/favoritos', 'Favoritos'],
-];
+const pendingAccount = [['cuenta/favoritos', 'Favoritos']];
 
 // Requieren sesión de vendedor
 const pendingSeller = [
@@ -54,7 +52,11 @@ export const routes = [
       ...pendingPublic.map(soon),
       {
         element: <RequireAuth />,
-        children: [{ path: 'cuenta', element: <AccountPage /> }, ...pendingAccount.map(soon)],
+        children: [
+          { path: 'cuenta', element: <AccountPage /> },
+          { path: 'cuenta/armados', element: <SavedBuildsPage /> },
+          ...pendingAccount.map(soon),
+        ],
       },
       { element: <RequireAuth roles={['seller']} />, children: pendingSeller.map(soon) },
       { path: '*', element: <NotFoundPage /> },
