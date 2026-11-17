@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import { PLATFORM_NAME } from '../../shared/config.js';
 import { formatCOPAmount } from '../../shared/lib/format.js';
 import ComingSoonButton from '../../shared/ui/ComingSoonButton.jsx';
 import Container from '../../shared/ui/Container.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
+import Toast from '../../shared/ui/Toast.jsx';
 import { analyzeBuild } from './analysis.js';
 import BuildSidebar from './BuildSidebar.jsx';
 import PartPicker from './PartPicker.jsx';
 import QuoteModal from './QuoteModal.jsx';
 import RuleAlerts from './RuleAlerts.jsx';
+import SaveBuildDialog from './SaveBuildDialog.jsx';
 import SlotCard from './SlotCard.jsx';
 import { SLOTS } from './slots.js';
 import { useBuildStore } from './store.js';
@@ -67,8 +70,12 @@ export default function BuilderPage() {
   const analysis = useMemo(() => analyzeBuild(parts), [parts]);
   const [pickerCategory, setPickerCategory] = useState(null);
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [notice, setNotice] = useState('');
+  // Aviso con el que llega quien abre un armado guardado (viene en el estado de la navegación)
+  const location = useLocation();
+  const [openedNotice, setOpenedNotice] = useState(location.state?.notice ?? null);
 
   useEffect(() => {
     document.title = `Arma tu PC · ${PLATFORM_NAME}`;
@@ -215,7 +222,12 @@ export default function BuilderPage() {
         </div>
 
         <div className="lg:sticky lg:top-20 lg:col-span-4">
-          <BuildSidebar analysis={analysis} parts={parts} onPick={setPickerCategory} />
+          <BuildSidebar
+            analysis={analysis}
+            parts={parts}
+            onPick={setPickerCategory}
+            onSave={() => setSaveOpen(true)}
+          />
         </div>
       </div>
 
@@ -225,6 +237,13 @@ export default function BuilderPage() {
         onClose={() => setPickerCategory(null)}
         onSelect={handleSelect}
       />
+      <SaveBuildDialog
+        open={saveOpen}
+        onClose={() => setSaveOpen(false)}
+        parts={parts}
+        conflicts={analysis.failures.length}
+      />
+      {openedNotice && <Toast message={openedNotice} onClose={() => setOpenedNotice(null)} />}
       <QuoteModal
         open={quoteOpen}
         onClose={() => setQuoteOpen(false)}

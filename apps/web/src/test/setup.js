@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { resetMockAuth } from '../mocks/auth.js';
+import { resetMockBuilds } from '../mocks/builds.js';
 import { server } from '../mocks/node.js';
 import { resetSession } from '../shared/session/actions.js';
 
@@ -22,6 +23,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
   resetMockAuth();
+  resetMockBuilds();
   resetSession();
   cleanup();
   sessionStorage.clear();
