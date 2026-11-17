@@ -66,10 +66,9 @@ describe('Ficha: contenido', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('compartir, favoritos y alternativas están deshabilitados como "Próximamente"', async () => {
+  it('compartir y alternativas están deshabilitados como "Próximamente"', async () => {
     await open(ryzen);
     expect(screen.getByRole('button', { name: /Compartir .* \(próximamente\)/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /en favoritos \(próximamente\)/ })).toBeDisabled();
     const alt = within(screen.getByRole('region', { name: 'Alternativas directas' }));
     expect(alt.getByText('Próximamente')).toBeInTheDocument();
   });

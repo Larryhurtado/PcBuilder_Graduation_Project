@@ -66,7 +66,7 @@ describe('Mi cuenta: menú', () => {
     const builds = menu().getByRole('link', { name: /Mis armados/ });
     const wishlist = menu().getByRole('link', { name: /Favoritos/ });
     await waitFor(() => expect(builds).toHaveTextContent('3'));
-    await waitFor(() => expect(wishlist).toHaveTextContent('1'));
+    await waitFor(() => expect(wishlist).toHaveTextContent('3'));
     expect(builds).toHaveAttribute('href', '/cuenta/armados');
     expect(wishlist).toHaveAttribute('href', '/cuenta/favoritos');
   });

@@ -11,7 +11,8 @@ import Icon from '../../shared/ui/Icon.jsx';
 import OfferImage from '../../shared/ui/OfferImage.jsx';
 import Toast from '../../shared/ui/Toast.jsx';
 import { useBuildStore } from '../builder/store.js';
-import { FavoriteButton, ShareButton } from '../catalog/OfferActions.jsx';
+import { ShareButton } from '../catalog/OfferActions.jsx';
+import FavoriteButton from '../favorites/FavoriteButton.jsx';
 import CompatBanner from './CompatBanner.jsx';
 import ProductOffers from './ProductOffers.jsx';
 import { useComponent, useComponentOffers } from './queries.js';
@@ -187,7 +188,9 @@ export default function ProductPage() {
         <Breadcrumb component={component} />
         <div className="flex gap-space-xs">
           <ShareButton name={component.displayName} />
-          <FavoriteButton name={component.displayName} />
+          <FavoriteButton
+            component={{ ...component, minPriceCop: best?.priceCop, offersCount: offers.length }}
+          />
         </div>
       </div>
 

@@ -5,7 +5,8 @@ import ConditionChip from '../../shared/ui/ConditionChip.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import OfferImage from '../../shared/ui/OfferImage.jsx';
 import WhatsAppLink from '../../shared/ui/WhatsAppLink.jsx';
-import { AddToBuildButton, FavoriteButton } from './OfferActions.jsx';
+import FavoriteButton from '../favorites/FavoriteButton.jsx';
+import { AddToBuildButton } from './OfferActions.jsx';
 
 const place = ({ city, commercialCenter }) => [city, commercialCenter].filter(Boolean).join(' • ');
 
@@ -30,7 +31,7 @@ export default function CatalogCard({ offer, inBuild, replaces, onAdd }) {
               {formatWarranty(offer.warrantyMonths)}
             </span>
           </div>
-          <FavoriteButton name={component.displayName} className="relative z-10 -my-2 -mr-2" />
+          <FavoriteButton component={component} className="relative z-10 -my-2 -mr-2" />
         </div>
 
         <OfferImage offer={offer} className="h-40" iconClassName="h-16 w-16">

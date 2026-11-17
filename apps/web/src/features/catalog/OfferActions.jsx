@@ -1,24 +1,6 @@
 import Icon from '../../shared/ui/Icon.jsx';
 
 /**
- * Favoritos (HU-14): llega con las cuentas, así que por ahora se ve deshabilitado.
- * @param {{ name: string, className?: string }} props nombre de la pieza, para el nombre accesible
- */
-export function FavoriteButton({ name, className = '' }) {
-  return (
-    <button
-      type="button"
-      disabled
-      aria-label={`Guardar ${name} en favoritos (próximamente)`}
-      title="Favoritos: próximamente"
-      className={`flex h-11 w-11 shrink-0 cursor-not-allowed items-center justify-center rounded-xl text-outline opacity-60 ${className}`}
-    >
-      <Icon name="favorite" className="text-[20px]" />
-    </button>
-  );
-}
-
-/**
  * Compartir la ficha: llega más adelante, así que por ahora se ve deshabilitado.
  * @param {{ name: string, className?: string }} props nombre de la pieza, para el nombre accesible
  */
