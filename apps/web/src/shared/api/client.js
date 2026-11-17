@@ -46,7 +46,8 @@ function buildUrl(path, query) {
  * Lanza ApiError ante cualquier fallo, incluidos los de red. Si hay sesión envía el token de
  * acceso; ante `401 TOKEN_EXPIRED` renueva la sesión UNA vez y repite la petición.
  * @param {string} path
- * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, signal?: AbortSignal }} [options]
+ * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, rawBody?: Blob, signal?: AbortSignal }} [options]
+ * `rawBody` envía el archivo tal cual (con su propio Content-Type) en lugar de JSON.
  */
 export async function apiFetch(path, options = {}) {
   try {
@@ -60,7 +61,7 @@ export async function apiFetch(path, options = {}) {
   }
 }
 
-async function send(path, { method = 'GET', query, body, signal } = {}) {
+async function send(path, { method = 'GET', query, body, rawBody, signal } = {}) {
   const token = getAccessToken();
   let response;
   try {
@@ -71,9 +72,10 @@ async function send(path, { method = 'GET', query, body, signal } = {}) {
       headers: {
         Accept: 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(rawBody ? { 'Content-Type': rawBody.type } : {}),
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: rawBody ?? (body !== undefined ? JSON.stringify(body) : undefined),
     });
   } catch (cause) {
     if (cause?.name === 'AbortError') throw cause;

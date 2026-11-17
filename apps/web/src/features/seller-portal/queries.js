@@ -2,13 +2,17 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { getErrorMessage } from '../../shared/api/client.js';
 import { notify } from '../../shared/notices.js';
 import {
+  createSellerOffer,
   deleteSellerOffer,
+  getCatalogBrands,
+  getCatalogModels,
   getAnalyticsSummary,
   getMyStore,
   getSellerOffers,
   getVerificationStatus,
   setSellerOfferStatus,
   updateSellerOffer,
+  uploadOfferImage,
 } from './api.js';
 
 // Las claves llevan el id del usuario: al cambiar de cuenta nunca se ven datos de la anterior.
@@ -96,4 +100,57 @@ export function useOfferActions(userId) {
   });
 
   return { status, update, remove };
+}
+
+/** Marcas de una categoría para la cascada de publicación. */
+export function useBrands(category) {
+  return useQuery({
+    queryKey: ['catalog', 'brands', category],
+    queryFn: ({ signal }) => getCatalogBrands(category, { signal }),
+    enabled: Boolean(category),
+    staleTime: 300_000,
+  });
+}
+
+/** Modelos de una marca en una categoría. */
+export function useModels(category, brandId) {
+  return useQuery({
+    queryKey: ['catalog', 'models', category, brandId],
+    queryFn: ({ signal }) => getCatalogModels(category, brandId, { signal }),
+    enabled: Boolean(category && brandId),
+    staleTime: 300_000,
+  });
+}
+
+/**
+ * Publica una oferta: sube las fotos que falten y crea la oferta. Si algo falla a mitad de camino,
+ * las fotos ya subidas conservan su clave (`photo.key`) para no repetirse al reintentar.
+ * `onPhoto(id, patch)` informa el avance de cada foto.
+ */
+export function usePublishOffer(userId) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ body, photos, onPhoto }) => {
+      const keys = [];
+      for (const photo of photos) {
+        let key = photo.key;
+        if (!key) {
+          onPhoto(photo.id, { status: 'uploading', error: null });
+          try {
+            key = await uploadOfferImage(photo.file);
+          } catch (error) {
+            onPhoto(photo.id, { status: 'error', error: getErrorMessage(error) });
+            throw error;
+          }
+          onPhoto(photo.id, { status: 'done', key });
+        }
+        keys.push(key);
+      }
+      return createSellerOffer({ ...body, imageKeys: keys });
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['seller', userId, 'offers'] });
+      client.invalidateQueries({ queryKey: ['seller', userId, 'analytics'] });
+    },
+  });
 }
