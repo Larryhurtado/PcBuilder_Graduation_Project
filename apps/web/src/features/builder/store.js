@@ -35,6 +35,9 @@ export const useBuildStore = create(
             : state,
         ),
 
+      /** Reemplaza todo el armado (por ejemplo al abrir uno guardado); descarta piezas inválidas. */
+      loadParts: (parts) => set({ parts: sanitizeParts(parts) }),
+
       removePart: (category) =>
         set((state) => {
           const { [category]: _removed, ...parts } = state.parts;

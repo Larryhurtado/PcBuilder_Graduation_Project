@@ -37,7 +37,7 @@ describe('Asistente de ensamblaje: armado vacío', () => {
 
   it('las funciones que llegan después se ven deshabilitadas con "Próximamente"', () => {
     renderApp('/armador');
-    for (const name of [/Exportar ID/, /Descargar cotización/, /Copiar enlace/, /Guardar/]) {
+    for (const name of [/Exportar ID/, /Descargar cotización/, /Copiar enlace/]) {
       const button = screen.getByRole('button', { name });
       expect(button).toBeDisabled();
       expect(button).toHaveTextContent('Próximamente');

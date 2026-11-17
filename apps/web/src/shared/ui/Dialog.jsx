@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 const variants = {
   center:
     'm-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-3xl bg-surface-container',
+  narrow:
+    'm-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-3xl bg-surface-container',
   drawer:
     'my-0 ml-auto mr-0 h-dvh max-h-none w-full max-w-lg overflow-y-auto rounded-none bg-surface-container',
 };
@@ -10,7 +12,8 @@ const variants = {
 /**
  * Diálogo modal con el elemento nativo <dialog>: atrapa el foco, se cierra con Escape y devuelve
  * el foco a quien lo abrió. Se cierra también al hacer clic fuera del panel.
- * @param {{ open: boolean, onClose: () => void, labelledBy: string, variant?: 'center' | 'drawer', className?: string, children: import('react').ReactNode }} props
+ * `variant`: 'center' (ancho), 'narrow' (formularios y confirmaciones) o 'drawer' (panel lateral).
+ * @param {{ open: boolean, onClose: () => void, labelledBy: string, variant?: 'center' | 'narrow' | 'drawer', className?: string, children: import('react').ReactNode }} props
  */
 export default function Dialog({
   open,

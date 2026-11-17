@@ -13,9 +13,9 @@ const statusView = {
 
 /**
  * "Tu armado": resumen lateral con el estado de cada pieza, WhatsApp por pieza, total y acciones.
- * @param {{ analysis: ReturnType<typeof import('./analysis.js').analyzeBuild>, parts: Record<string, any>, onPick: (category: string) => void }} props
+ * @param {{ analysis: ReturnType<typeof import('./analysis.js').analyzeBuild>, parts: Record<string, any>, onPick: (category: string) => void, onSave: () => void }} props
  */
-export default function BuildSidebar({ analysis, parts, onPick }) {
+export default function BuildSidebar({ analysis, parts, onPick, onSave }) {
   const { count, total, failures, bySlot } = analysis;
   const conflicts = failures.length;
 
@@ -151,11 +151,16 @@ export default function BuildSidebar({ analysis, parts, onPick }) {
               label="Copiar enlace"
               className="h-14 bg-surface text-on-surface"
             />
-            <ComingSoonButton
-              icon="bookmark"
-              label="Guardar"
-              className="h-14 bg-surface text-on-surface"
-            />
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={count === 0}
+              title={count === 0 ? 'Agrega al menos una pieza para guardar' : undefined}
+              className="flex h-14 items-center justify-center gap-2 rounded-xl bg-surface text-label-md text-on-surface transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-surface"
+            >
+              <Icon name="bookmark" className="text-[18px]" />
+              Guardar
+            </button>
           </div>
         </div>
       </section>

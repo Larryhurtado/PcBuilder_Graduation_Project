@@ -7,6 +7,7 @@ import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
 import { accountHandlers } from './account.js';
 import { authHandlers } from './auth.js';
+import { buildsHandlers } from './builds.js';
 import { components, publicStores } from './data.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
@@ -17,6 +18,8 @@ export const handlers = [
   ...authHandlers,
   // Cuenta: armados guardados y favoritos
   ...accountHandlers,
+  // Armados guardados: guardar, abrir por enlace, listar y eliminar
+  ...buildsHandlers,
 
   // Catálogo y ofertas con filtros, orden, paginación y filtros técnicos del motor (HU-02, 06, 09)
   http.get(api('/offers/featured'), ({ request }) => {
