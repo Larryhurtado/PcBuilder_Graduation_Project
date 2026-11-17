@@ -11,6 +11,7 @@ import { homeForRole, safeNext } from '../../shared/session/redirect.js';
 import { useSession } from '../../shared/session/useSession.js';
 import Icon from '../../shared/ui/Icon.jsx';
 import AuthShell from './AuthShell.jsx';
+import DemoSellerShortcut from './DemoSellerShortcut.jsx';
 import { FormAlert, PasswordField, SubmitButton, TextField } from './fields.jsx';
 
 /** Mismas reglas del contrato (loginBodySchema) con mensajes propios para los campos vacíos. */
@@ -115,6 +116,7 @@ export default function LoginPage() {
           Ingresar
         </SubmitButton>
       </form>
+      <DemoSellerShortcut />
     </AuthShell>
   );
 }
