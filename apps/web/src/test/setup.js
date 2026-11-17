@@ -3,6 +3,7 @@ import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { resetMockAuth } from '../mocks/auth.js';
 import { resetMockBuilds } from '../mocks/builds.js';
+import { resetMockSeller } from '../mocks/seller.js';
 import { resetMockWishlist } from '../mocks/wishlist.js';
 import { server } from '../mocks/node.js';
 import { dismissNotice } from '../shared/notices.js';
@@ -27,6 +28,7 @@ afterEach(() => {
   resetMockAuth();
   resetMockBuilds();
   resetMockWishlist();
+  resetMockSeller();
   dismissNotice();
   resetSession();
   cleanup();

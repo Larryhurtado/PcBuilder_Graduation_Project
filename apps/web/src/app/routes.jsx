@@ -7,6 +7,7 @@ import CatalogPage from '../features/catalog/CatalogPage.jsx';
 import FavoritesPage from '../features/favorites/FavoritesPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
 import ProductPage from '../features/product/ProductPage.jsx';
+import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
 import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
 import StoresPage from '../features/stores/StoresPage.jsx';
 import RequireAuth from '../shared/session/RequireAuth.jsx';
@@ -17,7 +18,6 @@ import { ComingSoonPage, NotFoundPage } from './pages.jsx';
 // componente real al construirla.
 const pendingPublic = [
   ['recuperar', 'Recuperar contraseña'],
-  ['vender', 'Quiero vender'],
   ['armado/:codigo', 'Armado compartido'],
   ['terminos', 'Términos y condiciones'],
   ['privacidad', 'Política de privacidad'],
@@ -47,6 +47,7 @@ export const routes = [
       { path: 'tiendas/:id', element: <StoreProfilePage /> },
       { path: 'ingresar', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
+      { path: 'vender', element: <BecomeSellerPage /> },
       ...pendingPublic.map(soon),
       {
         element: <RequireAuth />,

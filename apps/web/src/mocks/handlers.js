@@ -8,6 +8,7 @@ import { featuredOffers, searchOffers } from './catalog.js';
 import { authHandlers } from './auth.js';
 import { buildsHandlers } from './builds.js';
 import { components, publicStores } from './data.js';
+import { sellerHandlers } from './seller.js';
 import { wishlistHandlers } from './wishlist.js';
 
 // El prefijo `*` hace que los handlers funcionen igual en el navegador y en jsdom (URL absoluta).
@@ -18,6 +19,8 @@ export const handlers = [
   ...authHandlers,
   // Cuenta: favoritos
   ...wishlistHandlers,
+  // Vendedor: convertirse y completar el perfil del negocio
+  ...sellerHandlers,
   // Armados guardados: guardar, abrir por enlace, listar y eliminar
   ...buildsHandlers,
 
