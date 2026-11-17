@@ -40,6 +40,11 @@ let users = [...demoUsers];
 /** Usuario con "cookie de refresco" vigente (null = visitante). */
 let current = null;
 
+/** Usuario dueño del token Bearer de la petición (undefined si no hay sesión). */
+export function userFromRequest(request) {
+  return users.find((item) => request.headers.get('Authorization') === `Bearer ${tokenFor(item)}`);
+}
+
 /** Quita la sesión simulada y las cuentas creadas durante la prueba. */
 export function resetMockAuth() {
   current = null;
@@ -95,9 +100,7 @@ export const authHandlers = [
   }),
 
   http.get(api('/me'), ({ request }) => {
-    const user = users.find(
-      (item) => request.headers.get('Authorization') === `Bearer ${tokenFor(item)}`,
-    );
+    const user = userFromRequest(request);
     return user
       ? HttpResponse.json({ user: publicUser(user) })
       : error(401, 'UNAUTHENTICATED', 'Debes iniciar sesión para continuar.');

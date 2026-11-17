@@ -5,6 +5,7 @@
 // las pantallas no cambian, porque llaman a la API siempre por /api/v1.
 import { http, HttpResponse } from 'msw';
 import { featuredOffers, searchOffers } from './catalog.js';
+import { accountHandlers } from './account.js';
 import { authHandlers } from './auth.js';
 import { components, publicStores } from './data.js';
 
@@ -14,6 +15,8 @@ const api = (path) => `*/api/v1${path}`;
 export const handlers = [
   // Sesión: login, refresco, cierre y usuario actual
   ...authHandlers,
+  // Cuenta: armados guardados y favoritos
+  ...accountHandlers,
 
   // Catálogo y ofertas con filtros, orden, paginación y filtros técnicos del motor (HU-02, 06, 09)
   http.get(api('/offers/featured'), ({ request }) => {
