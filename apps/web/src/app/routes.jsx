@@ -1,3 +1,4 @@
+import AccountPage from '../features/account/AccountPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import RegisterPage from '../features/auth/RegisterPage.jsx';
 import BuilderPage from '../features/builder/BuilderPage.jsx';
@@ -23,7 +24,6 @@ const pendingPublic = [
 
 // Requieren sesión: cualquier cuenta
 const pendingAccount = [
-  ['cuenta', 'Mi cuenta'],
   ['cuenta/armados', 'Armados guardados'],
   ['cuenta/favoritos', 'Favoritos'],
 ];
@@ -52,7 +52,10 @@ export const routes = [
       { path: 'ingresar', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
       ...pendingPublic.map(soon),
-      { element: <RequireAuth />, children: pendingAccount.map(soon) },
+      {
+        element: <RequireAuth />,
+        children: [{ path: 'cuenta', element: <AccountPage /> }, ...pendingAccount.map(soon)],
+      },
       { element: <RequireAuth roles={['seller']} />, children: pendingSeller.map(soon) },
       { path: '*', element: <NotFoundPage /> },
     ],

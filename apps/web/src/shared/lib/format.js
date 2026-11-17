@@ -36,6 +36,19 @@ export function formatLocation({ city, department } = {}) {
 }
 
 /**
+ * Iniciales para un avatar: las dos primeras palabras ("TecnoPasarela Cali" -> "TC").
+ * @param {string | null | undefined} name
+ */
+export function initials(name) {
+  return (name ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+}
+
+/**
  * Teléfono colombiano legible a partir de E.164: "+573001234567" -> "+57 300 123 4567". Cualquier
  * otro formato se devuelve tal cual, y un valor vacío o inválido da null.
  * @param {string | null | undefined} e164

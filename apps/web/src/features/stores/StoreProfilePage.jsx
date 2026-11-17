@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ApiError, getErrorMessage } from '../../shared/api/client.js';
 import { PLATFORM_NAME } from '../../shared/config.js';
-import { formatLocation, formatPhone } from '../../shared/lib/format.js';
+import { formatLocation, formatPhone, initials } from '../../shared/lib/format.js';
 import { categoryLabels } from '../../shared/lib/specs.js';
 import ButtonLink from '../../shared/ui/ButtonLink.jsx';
 import CategoryIcon from '../../shared/ui/CategoryIcon.jsx';
@@ -19,14 +19,6 @@ import { useStore, useStoreOffers } from './queries.js';
 import { OFFER_SORTS, useStoreOfferFilters } from './useStoreOfferFilters.js';
 
 const gridClass = 'grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-3';
-
-const initials = (name) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
 
 function Breadcrumb({ name }) {
   return (
