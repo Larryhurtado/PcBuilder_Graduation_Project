@@ -122,7 +122,7 @@ export function FormAlert({ children }) {
 }
 
 /** Botón principal de envío con estado de carga. */
-export function SubmitButton({ busy, busyLabel, children }) {
+export function SubmitButton({ busy, busyLabel, children, icon = 'arrow_forward' }) {
   return (
     <button
       type="submit"
@@ -134,7 +134,7 @@ export function SubmitButton({ busy, busyLabel, children }) {
       ) : (
         <>
           {children}
-          <Icon name="arrow_forward" className="text-[18px]" />
+          <Icon name={icon} className="text-[18px]" />
         </>
       )}
     </button>

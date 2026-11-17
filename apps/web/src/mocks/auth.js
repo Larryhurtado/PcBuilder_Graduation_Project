@@ -45,6 +45,18 @@ export function userFromRequest(request) {
   return users.find((item) => request.headers.get('Authorization') === `Bearer ${tokenFor(item)}`);
 }
 
+/** Cambia datos de una cuenta simulada (por ejemplo su rol al convertirse en vendedora). */
+export function updateMockUser(id, patch) {
+  users = users.map((item) => (item.id === id ? { ...item, ...patch } : item));
+  if (current?.id === id) current = users.find((item) => item.id === id);
+  return users.find((item) => item.id === id);
+}
+
+/** Respuesta de autenticación (token, vigencia y usuario) de una cuenta simulada. */
+export function authResponseFor(user) {
+  return authResponse(user);
+}
+
 /** Quita la sesión simulada y las cuentas creadas durante la prueba. */
 export function resetMockAuth() {
   current = null;
