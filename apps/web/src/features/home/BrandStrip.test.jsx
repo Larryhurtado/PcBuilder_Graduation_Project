@@ -1,12 +1,14 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import BrandStrip, { brands } from './BrandStrip.jsx';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
+import BrandStrip, { BRAND_NOTICE, brands } from './BrandStrip.jsx';
 import { BRAND_LOGOS } from './brandLogos.js';
 
 const css = readFileSync(resolve(import.meta.dirname, '../../index.css'), 'utf8');
 const strip = () => within(screen.getByRole('region', { name: 'Marcas disponibles' }));
+const notice = (container) => container.querySelector('[data-brand-notice]');
 
 describe('Franja de marcas: carrusel', () => {
   it('muestra las nueve marcas una sola vez para los lectores de pantalla', () => {
@@ -25,8 +27,11 @@ describe('Franja de marcas: carrusel', () => {
       expect(visible.getByText(name)).toBeInTheDocument();
       expect(strip().queryByRole('img', { name })).not.toBeInTheDocument();
     }
-    const withoutLogo = brands.filter((name) => !BRAND_LOGOS[name]);
-    expect(withoutLogo).toEqual(['Gigabyte', 'Kingston', 'Seasonic']);
+    expect(brands.filter((name) => !BRAND_LOGOS[name])).toEqual([
+      'Gigabyte',
+      'Kingston',
+      'Seasonic',
+    ]);
   });
 
   it('repite la lista una vez para que el bucle no tenga saltos', () => {
@@ -56,17 +61,69 @@ describe('Franja de marcas: carrusel', () => {
     }
   });
 
-  it('aclara que las marcas no indican respaldo ni alianza, debajo de la franja', () => {
+  it('no tiene botones: no hay botón de pausa', () => {
     render(<BrandStrip />);
-    expect(
-      screen.getByText(
-        'Marcas de fabricantes presentes en el catálogo. No indican respaldo ni alianza.',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
 
-describe('Franja de marcas: movimiento reducido y pausa', () => {
+describe('Franja de marcas: aviso flotante', () => {
+  it('no ocupa lugar: empieza oculto y no recibe el cursor', () => {
+    const { container } = render(<BrandStrip />);
+    expect(notice(container)).toHaveAttribute('data-visible', 'false');
+    expect(notice(container)).toHaveAttribute('aria-hidden', 'true');
+    expect(notice(container).className).toContain('pointer-events-none');
+    expect(notice(container).className).toContain('absolute');
+  });
+
+  it('los lectores de pantalla lo reciben como descripción de la sección', () => {
+    render(<BrandStrip />);
+    expect(screen.getByRole('region', { name: 'Marcas disponibles' })).toHaveAccessibleDescription(
+      BRAND_NOTICE,
+    );
+  });
+
+  it('aparece tras dejar el cursor quieto un rato sobre la franja', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<BrandStrip hoverDelay={60} />);
+    await user.hover(screen.getByRole('region', { name: 'Marcas disponibles' }));
+    expect(notice(container)).toHaveAttribute('data-visible', 'false');
+    await waitFor(() => expect(notice(container)).toHaveAttribute('data-visible', 'true'));
+    expect(within(notice(container)).getByText(BRAND_NOTICE)).toBeInTheDocument();
+  });
+
+  it('se oculta al sacar el cursor', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<BrandStrip hoverDelay={30} />);
+    const region = screen.getByRole('region', { name: 'Marcas disponibles' });
+    await user.hover(region);
+    await waitFor(() => expect(notice(container)).toHaveAttribute('data-visible', 'true'));
+    await user.unhover(region);
+    expect(notice(container)).toHaveAttribute('data-visible', 'false');
+  });
+
+  it('si el cursor pasa de largo, sin esperar, no aparece', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<BrandStrip hoverDelay={250} />);
+    const region = screen.getByRole('region', { name: 'Marcas disponibles' });
+    await user.hover(region);
+    await user.unhover(region);
+    await new Promise((resolveWait) => setTimeout(resolveWait, 350));
+    expect(notice(container)).toHaveAttribute('data-visible', 'false');
+  });
+
+  it('en pantallas táctiles, un toque lo muestra y otro lo oculta', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<BrandStrip />);
+    const region = screen.getByRole('region', { name: 'Marcas disponibles' });
+    await user.pointer({ keys: '[TouchA]', target: region });
+    expect(notice(container)).toHaveAttribute('data-visible', 'true');
+    await user.pointer({ keys: '[TouchA]', target: region });
+    expect(notice(container)).toHaveAttribute('data-visible', 'false');
+  });
+});
+
+describe('Franja de marcas: movimiento reducido', () => {
   it('con movimiento reducido la pista no se anima y se acomoda en filas', () => {
     const { container } = render(<BrandStrip />);
     const track = container.querySelector('.brand-track');
@@ -75,19 +132,13 @@ describe('Franja de marcas: movimiento reducido y pausa', () => {
     expect(container.querySelector('.brand-track > ul[aria-hidden]').className).toContain(
       'motion-reduce:hidden',
     );
+    expect(notice(container).className).toContain('motion-reduce:transition-none');
   });
 
-  it('no tiene botón de pausa: la pausa es solo con el cursor o el foco', () => {
-    render(<BrandStrip />);
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
-  });
-
-  it('la pausa al pasar el cursor y al enfocar está definida en la franja', () => {
+  it('se pausa al pasar el cursor', () => {
     const { container } = render(<BrandStrip />);
-    const wrapper = container.querySelector('.group');
-    expect(wrapper.className).toContain('hover:[&_.brand-track]:[animation-play-state:paused]');
-    expect(wrapper.className).toContain(
-      'focus-within:[&_.brand-track]:[animation-play-state:paused]',
+    expect(container.querySelector('.group').className).toContain(
+      'hover:[&_.brand-track]:[animation-play-state:paused]',
     );
   });
 
