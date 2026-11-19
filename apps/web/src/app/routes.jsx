@@ -24,56 +24,82 @@ import SellerLayout from '../features/seller-portal/SellerLayout.jsx';
 import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
 import StoresPage from '../features/stores/StoresPage.jsx';
 import RequireAuth from '../shared/session/RequireAuth.jsx';
-import AppLayout from './AppLayout.jsx';
+import ErrorScreen from '../shared/ui/ErrorScreen.jsx';
+import AppLayout, { PublicFrame } from './AppLayout.jsx';
+import ErrorPage, { RootErrorPage } from './ErrorPage.jsx';
 import { NotFoundPage } from './pages.jsx';
 import Root from './Root.jsx';
+
+/** Salidas del 404 dentro del portal del vendedor (en vez de las del sitio público). */
+const portalActions = [
+  { label: 'Ir al dashboard', to: '/vendedor' },
+  { label: 'Ver inventario', to: '/vendedor/inventario' },
+];
 
 export const routes = [
   {
     element: <Root />,
+    // Último recurso, para un error fuera de los marcos
+    errorElement: <RootErrorPage />,
     children: [
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'armador', element: <BuilderPage /> },
-          { path: 'armado/:codigo', element: <SharedBuildPage /> },
-          { path: 'catalogo', element: <CatalogPage /> },
-          { path: 'producto/:id', element: <ProductPage /> },
-          { path: 'tiendas', element: <StoresPage /> },
-          { path: 'tiendas/:id', element: <StoreProfilePage /> },
-          { path: 'ingresar', element: <LoginPage /> },
-          { path: 'registro', element: <RegisterPage /> },
-          { path: 'recuperar', element: <RecoverPage /> },
-          { path: 'restablecer', element: <ResetPasswordPage /> },
-          { path: 'vender', element: <BecomeSellerPage /> },
-          { path: 'terminos', element: <TermsPage /> },
-          { path: 'privacidad', element: <PrivacyPage /> },
-          { path: 'atribucion', element: <AttributionPage /> },
           {
-            element: <RequireAuth />,
+            // Un error dentro de una pantalla se muestra con la barra y el pie puestos
+            errorElement: <ErrorPage />,
             children: [
-              { path: 'cuenta', element: <AccountPage /> },
-              { path: 'cuenta/armados', element: <SavedBuildsPage /> },
-              { path: 'cuenta/favoritos', element: <FavoritesPage /> },
+              { index: true, element: <HomePage /> },
+              { path: 'armador', element: <BuilderPage /> },
+              { path: 'armado/:codigo', element: <SharedBuildPage /> },
+              { path: 'catalogo', element: <CatalogPage /> },
+              { path: 'producto/:id', element: <ProductPage /> },
+              { path: 'tiendas', element: <StoresPage /> },
+              { path: 'tiendas/:id', element: <StoreProfilePage /> },
+              { path: 'ingresar', element: <LoginPage /> },
+              { path: 'registro', element: <RegisterPage /> },
+              { path: 'recuperar', element: <RecoverPage /> },
+              { path: 'restablecer', element: <ResetPasswordPage /> },
+              { path: 'vender', element: <BecomeSellerPage /> },
+              { path: 'terminos', element: <TermsPage /> },
+              { path: 'privacidad', element: <PrivacyPage /> },
+              { path: 'atribucion', element: <AttributionPage /> },
+              {
+                element: <RequireAuth />,
+                children: [
+                  { path: 'cuenta', element: <AccountPage /> },
+                  { path: 'cuenta/armados', element: <SavedBuildsPage /> },
+                  { path: 'cuenta/favoritos', element: <FavoritesPage /> },
+                ],
+              },
+              { path: '*', element: <NotFoundPage /> },
             ],
           },
-          { path: '*', element: <NotFoundPage /> },
         ],
       },
       {
-        // El portal del vendedor tiene su propio marco (menú lateral y barra), sin la barra pública
-        element: <RequireAuth roles={['seller']} />,
+        // El portal del vendedor tiene su propio marco (menú lateral y barra), sin la barra pública.
+        // Si la cuenta no es de vendedor, la pantalla de aviso se muestra con el marco público.
+        element: <RequireAuth roles={['seller']} frame={PublicFrame} />,
         children: [
           {
             element: <SellerLayout />,
             children: [
-              { path: 'vendedor', element: <DashboardPage /> },
-              { path: 'vendedor/inventario', element: <InventoryPage /> },
-              { path: 'vendedor/metricas', element: <MetricsPage /> },
-              { path: 'vendedor/publicar', element: <PublishPage /> },
-              { path: 'vendedor/verificacion', element: <VerificationPage /> },
-              { path: 'vendedor/negocio', element: <SettingsPage /> },
+              {
+                errorElement: <ErrorPage actions={portalActions} />,
+                children: [
+                  { path: 'vendedor', element: <DashboardPage /> },
+                  { path: 'vendedor/inventario', element: <InventoryPage /> },
+                  { path: 'vendedor/metricas', element: <MetricsPage /> },
+                  { path: 'vendedor/publicar', element: <PublishPage /> },
+                  { path: 'vendedor/verificacion', element: <VerificationPage /> },
+                  { path: 'vendedor/negocio', element: <SettingsPage /> },
+                  {
+                    path: 'vendedor/*',
+                    element: <ErrorScreen variant="notFound" actions={portalActions} />,
+                  },
+                ],
+              },
             ],
           },
         ],
