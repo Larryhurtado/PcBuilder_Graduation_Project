@@ -131,11 +131,49 @@ function seed() {
   ];
 }
 
-/** Armados guardados de todas las cuentas y los anónimos (ownerId null). */
-let saved = seed();
+// Los armados creados se guardan en localStorage para que sobrevivan a una recarga o a un enlace
+// abierto en otra pestaña (los datos simulados viven en memoria y, sin esto, se pierden al recargar).
+// Solo sirve en desarrollo, con VITE_USE_MOCKS=true.
+const STORAGE_KEY = 'pcbuilder-mock-builds';
 
-/** Vuelve a los armados de ejemplo (para pruebas). */
+function storage() {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage;
+  } catch {
+    return null; // acceso bloqueado por el navegador
+  }
+}
+
+/** Lo guardado en localStorage, o null si no hay nada válido. */
+function loadSaved() {
+  try {
+    const raw = storage()?.getItem(STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : null;
+    return Array.isArray(list) && list.every((entry) => entry?.build?.shareCode) ? list : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Armados guardados de todas las cuentas y los anónimos (ownerId null). */
+let saved = loadSaved() ?? seed();
+
+function setSaved(next) {
+  saved = next;
+  try {
+    storage()?.setItem(STORAGE_KEY, JSON.stringify(saved));
+  } catch {
+    // Sin espacio o bloqueado: los armados siguen en memoria durante la sesión
+  }
+}
+
+/** Vuelve a los armados de ejemplo (para pruebas) y olvida los creados. */
 export function resetMockBuilds() {
+  try {
+    storage()?.removeItem(STORAGE_KEY);
+  } catch {
+    // nada que borrar
+  }
   saved = seed();
 }
 
@@ -172,7 +210,7 @@ export const buildsHandlers = [
       ownerId: user?.id ?? null,
       updatedAt: new Date().toISOString(),
     });
-    saved = [...saved, entry];
+    setSaved([...saved, entry]);
     return HttpResponse.json({ build: entry.build, evaluation: entry.evaluation }, { status: 201 });
   }),
 
@@ -184,6 +222,27 @@ export const buildsHandlers = [
       build: { ...entry.build, isOwner: Boolean(user) && entry.ownerId === user.id },
       evaluation: entry.evaluation,
     });
+  }),
+
+  // "Editar copia": copia el armado de otra persona a la cuenta de quien lo abre
+  http.post(api('/builds/:shareCode/clone'), ({ params, request }) => {
+    const user = userFromRequest(request);
+    if (!user) return unauthenticated();
+    const source = saved.find(({ build }) => build.shareCode === params.shareCode);
+    if (!source) return error(404, 'NOT_FOUND', 'No se encontró lo que buscas.');
+    const entry = makeBuild({
+      id: `e0000000-0000-4000-8000-${String(saved.length + 100).padStart(12, '0')}`,
+      name: `${source.build.name} (copia)`,
+      inputs: source.build.items.map(({ category, componentId, offerId }) => ({
+        category,
+        componentId,
+        offerId,
+      })),
+      ownerId: user.id,
+      updatedAt: new Date().toISOString(),
+    });
+    saved = [...saved, entry];
+    return HttpResponse.json({ build: entry.build, evaluation: entry.evaluation }, { status: 201 });
   }),
 
   http.get(api('/me/builds'), ({ request }) => {
@@ -201,7 +260,7 @@ export const buildsHandlers = [
     if (!user) return unauthenticated();
     const entry = saved.find((item) => item.build.id === params.id && item.ownerId === user.id);
     if (!entry) return error(404, 'NOT_FOUND', 'No se encontró lo que buscas.');
-    saved = saved.filter((item) => item !== entry);
+    setSaved(saved.filter((item) => item !== entry));
     return new HttpResponse(null, { status: 204 });
   }),
 ];

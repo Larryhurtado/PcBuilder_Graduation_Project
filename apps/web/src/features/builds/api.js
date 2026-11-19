@@ -11,6 +11,13 @@ export async function getBuild({ shareCode, signal }) {
   return savedBuildResponseSchema.parse(await apiFetch(`/builds/${shareCode}`, { signal }));
 }
 
+/** "Editar copia": copia un armado compartido a la cuenta (POST /builds/{codigo}/clone). */
+export async function cloneBuild(shareCode) {
+  return savedBuildResponseSchema.parse(
+    await apiFetch(`/builds/${shareCode}/clone`, { method: 'POST' }),
+  );
+}
+
 /** Elimina un armado de la cuenta (DELETE /me/builds/{id}); su enlace deja de funcionar. */
 export async function deleteBuild(id) {
   await apiFetch(`/me/builds/${id}`, { method: 'DELETE' });
