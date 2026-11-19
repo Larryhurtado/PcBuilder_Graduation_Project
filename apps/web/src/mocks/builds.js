@@ -186,6 +186,27 @@ export const buildsHandlers = [
     });
   }),
 
+  // "Editar copia": copia el armado de otra persona a la cuenta de quien lo abre
+  http.post(api('/builds/:shareCode/clone'), ({ params, request }) => {
+    const user = userFromRequest(request);
+    if (!user) return unauthenticated();
+    const source = saved.find(({ build }) => build.shareCode === params.shareCode);
+    if (!source) return error(404, 'NOT_FOUND', 'No se encontró lo que buscas.');
+    const entry = makeBuild({
+      id: `e0000000-0000-4000-8000-${String(saved.length + 100).padStart(12, '0')}`,
+      name: `${source.build.name} (copia)`,
+      inputs: source.build.items.map(({ category, componentId, offerId }) => ({
+        category,
+        componentId,
+        offerId,
+      })),
+      ownerId: user.id,
+      updatedAt: new Date().toISOString(),
+    });
+    saved = [...saved, entry];
+    return HttpResponse.json({ build: entry.build, evaluation: entry.evaluation }, { status: 201 });
+  }),
+
   http.get(api('/me/builds'), ({ request }) => {
     const user = userFromRequest(request);
     if (!user) return unauthenticated();

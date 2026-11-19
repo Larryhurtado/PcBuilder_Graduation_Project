@@ -2,6 +2,7 @@ import AccountPage from '../features/account/AccountPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import RegisterPage from '../features/auth/RegisterPage.jsx';
 import BuilderPage from '../features/builder/BuilderPage.jsx';
+import SharedBuildPage from '../features/builds/SharedBuildPage.jsx';
 import SavedBuildsPage from '../features/builds/SavedBuildsPage.jsx';
 import CatalogPage from '../features/catalog/CatalogPage.jsx';
 import FavoritesPage from '../features/favorites/FavoritesPage.jsx';
@@ -25,7 +26,6 @@ import Root from './Root.jsx';
 // componente real al construirla.
 const pendingPublic = [
   ['recuperar', 'Recuperar contraseña'],
-  ['armado/:codigo', 'Armado compartido'],
   ['terminos', 'Términos y condiciones'],
   ['privacidad', 'Política de privacidad'],
   ['atribucion', 'Atribución de datos'],
@@ -42,6 +42,7 @@ export const routes = [
         children: [
           { index: true, element: <HomePage /> },
           { path: 'armador', element: <BuilderPage /> },
+          { path: 'armado/:codigo', element: <SharedBuildPage /> },
           { path: 'catalogo', element: <CatalogPage /> },
           { path: 'producto/:id', element: <ProductPage /> },
           { path: 'tiendas', element: <StoresPage /> },
