@@ -8,6 +8,7 @@ import ErrorNotice from '../../shared/ui/ErrorNotice.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import ActivityChart, { METRICS } from './ActivityChart.jsx';
 import { Delta, Kpi, card, number, percent } from './kpi.jsx';
+import RangeSelector from './RangeSelector.jsx';
 import { useAnalytics, useMyStore, useVerificationStatus } from './queries.js';
 import {
   DEFAULT_RANGE,
@@ -72,23 +73,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-space-sm lg:items-end">
-          <div
-            role="group"
-            aria-label="Rango de fechas"
-            className="inline-flex self-start rounded-xl bg-surface-container p-1 lg:self-end"
-          >
-            {RANGES.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={kind === value}
-                onClick={() => setParams(value === DEFAULT_RANGE ? {} : { rango: value })}
-                className="min-h-11 rounded-lg px-4 text-label-md text-on-surface-variant transition-colors hover:text-on-surface aria-pressed:bg-primary-container aria-pressed:text-on-primary-container"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <RangeSelector
+            kind={kind}
+            onChange={(value) => setParams(value === DEFAULT_RANGE ? {} : { rango: value })}
+            className="self-start lg:self-end"
+          />
           <div className="flex flex-wrap gap-space-xs">
             <Link
               to="/vendedor/inventario"
@@ -226,6 +215,15 @@ export default function DashboardPage() {
             <p className="text-body-sm text-on-surface-variant">
               Por día, del {range.from} al {range.to}.
             </p>
+            <Link
+              to={
+                kind === DEFAULT_RANGE ? '/vendedor/metricas' : `/vendedor/metricas?rango=${kind}`
+              }
+              className="inline-flex min-h-11 items-center gap-1 text-label-md font-semibold text-primary hover:underline"
+            >
+              Ver métricas detalladas
+              <Icon name="arrow_forward" className="text-[16px]" />
+            </Link>
           </div>
           <div
             role="group"
