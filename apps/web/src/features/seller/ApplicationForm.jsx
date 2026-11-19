@@ -104,7 +104,7 @@ const secondaryLink =
 /**
  * Solicitud para convertirse en vendedor. Primero convierte la cuenta (POST /seller/convert, que da
  * un token nuevo con rol de vendedor) y luego guarda los datos del negocio (PATCH /seller/store).
- * Si el segundo paso falla, la cuenta ya es de vendedor y se pide completar el resto en "Mi negocio".
+ * Si el segundo paso falla, la cuenta ya es de vendedor y se pide completar el resto en "Ajustes de tienda".
  */
 export default function ApplicationForm() {
   const { user } = useSession();
@@ -199,7 +199,7 @@ export default function ApplicationForm() {
       >
         <p>
           Creamos tu cuenta de vendedor, pero no pudimos guardar los datos del comercio.{' '}
-          {partialMessage} Complétalos en «Mi negocio».
+          {partialMessage} Complétalos en «Ajustes de tienda».
         </p>
       </Panel>
     );

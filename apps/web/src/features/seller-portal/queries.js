@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '../../shared/api/client.js';
 import { notify } from '../../shared/notices.js';
+import { updateMyStore } from '../seller/api.js';
 import {
   createSellerOffer,
   deleteSellerOffer,
@@ -163,5 +164,14 @@ export function usePublishOffer(userId) {
       client.invalidateQueries({ queryKey: ['seller', userId, 'offers'] });
       client.invalidateQueries({ queryKey: ['seller', userId, 'analytics'] });
     },
+  });
+}
+
+/** Guarda los cambios del negocio (PATCH /seller/store) y deja la tienda guardada en la caché. */
+export function useUpdateStore(userId) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body) => updateMyStore(body),
+    onSuccess: (store) => client.setQueryData(['seller', userId, 'store'], store),
   });
 }

@@ -272,7 +272,7 @@ describe('Ser vendedor: enviar la solicitud', () => {
     // Con la sesión de vendedor, el panel del vendedor deja de estar bloqueado
     await user.click(form().getByRole('link', { name: 'Completar mi negocio' }));
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Mi negocio' }),
+      await screen.findByRole('heading', { level: 1, name: 'Ajustes de tienda' }),
     ).toBeInTheDocument();
   });
 

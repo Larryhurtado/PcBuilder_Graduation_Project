@@ -113,7 +113,7 @@ describe('Marco del portal del vendedor', () => {
   it('las demás pantallas del vendedor viven dentro del mismo marco', async () => {
     await open('/vendedor/negocio');
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Mi negocio' }),
+      await screen.findByRole('heading', { level: 1, name: 'Ajustes de tienda' }),
     ).toBeInTheDocument();
     expect(menu().getByRole('link', { name: 'Ajustes de tienda' })).toHaveAttribute(
       'aria-current',

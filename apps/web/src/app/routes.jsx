@@ -11,6 +11,7 @@ import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
 import DashboardPage from '../features/seller-portal/DashboardPage.jsx';
 import InventoryPage from '../features/seller-portal/InventoryPage.jsx';
 import PublishPage from '../features/seller-portal/PublishPage.jsx';
+import SettingsPage from '../features/seller-portal/SettingsPage.jsx';
 import VerificationPage from '../features/seller-portal/VerificationPage.jsx';
 import SellerLayout from '../features/seller-portal/SellerLayout.jsx';
 import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
@@ -29,9 +30,6 @@ const pendingPublic = [
   ['privacidad', 'Política de privacidad'],
   ['atribucion', 'Atribución de datos'],
 ];
-
-// Requieren sesión de vendedor; viven dentro del marco del portal (SellerLayout)
-const pendingSeller = [['vendedor/negocio', 'Mi negocio']];
 
 const soon = ([path, title]) => ({ path, element: <ComingSoonPage title={title} /> });
 
@@ -74,7 +72,7 @@ export const routes = [
               { path: 'vendedor/inventario', element: <InventoryPage /> },
               { path: 'vendedor/publicar', element: <PublishPage /> },
               { path: 'vendedor/verificacion', element: <VerificationPage /> },
-              ...pendingSeller.map(soon),
+              { path: 'vendedor/negocio', element: <SettingsPage /> },
             ],
           },
         ],
