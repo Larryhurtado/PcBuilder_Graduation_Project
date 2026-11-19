@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import Container from '../../shared/ui/Container.jsx';
-import Icon from '../../shared/ui/Icon.jsx';
 import { BRAND_LOGOS } from './brandLogos.js';
 
 export const brands = [
@@ -42,55 +40,36 @@ function Brand({ name, decorative }) {
 /**
  * Franja de marcas de la base maestra: un carrusel infinito en una sola línea. La lista se repite
  * dos veces para que el bucle no tenga saltos; la copia es solo visual (oculta a los lectores de
- * pantalla). Se pausa con el cursor, con el foco o con el botón, y no se mueve si el sistema
- * pide reducir las animaciones: en ese caso las marcas se acomodan en filas.
+ * pantalla). Se pausa al pasar el cursor o al enfocarla con el teclado, y con movimiento reducido
+ * no se mueve: las marcas se acomodan en filas. La nota va debajo, en letra pequeña.
  */
 export default function BrandStrip() {
-  const [paused, setPaused] = useState(false);
-
   return (
-    <section
-      aria-label="Marcas disponibles"
-      className="w-full bg-surface-container-low py-space-md"
-    >
-      <Container className="space-y-space-xs">
-        <div className="group overflow-hidden text-on-surface-variant [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] hover:[&_.brand-track]:[animation-play-state:paused] focus-within:[&_.brand-track]:[animation-play-state:paused] motion-reduce:[mask-image:none]">
-          <div
-            className={`brand-track flex w-max animate-brand-scroll motion-reduce:w-full motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:justify-center ${
-              paused ? '[animation-play-state:paused]' : ''
-            }`}
-          >
-            <ul className="flex shrink-0 items-center gap-space-xl px-space-md motion-reduce:flex-wrap motion-reduce:justify-center">
-              {brands.map((name) => (
-                <Brand key={name} name={name} />
-              ))}
-            </ul>
-            <ul
-              aria-hidden="true"
-              className="flex shrink-0 items-center gap-space-xl px-space-md motion-reduce:hidden"
-            >
-              {brands.map((name) => (
-                <Brand key={name} name={name} decorative />
-              ))}
-            </ul>
+    <section aria-label="Marcas disponibles" className="w-full">
+      <div className="w-full bg-surface-container-low py-space-sm">
+        <Container>
+          <div className="group overflow-hidden text-on-surface-variant [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] hover:[&_.brand-track]:[animation-play-state:paused] focus-within:[&_.brand-track]:[animation-play-state:paused] motion-reduce:[mask-image:none]">
+            <div className="brand-track flex w-max animate-brand-scroll motion-reduce:w-full motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:justify-center">
+              <ul className="flex shrink-0 items-center gap-space-xl px-space-md motion-reduce:flex-wrap motion-reduce:justify-center">
+                {brands.map((name) => (
+                  <Brand key={name} name={name} />
+                ))}
+              </ul>
+              <ul
+                aria-hidden="true"
+                className="flex shrink-0 items-center gap-space-xl px-space-md motion-reduce:hidden"
+              >
+                {brands.map((name) => (
+                  <Brand key={name} name={name} decorative />
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-between gap-space-xs sm:flex-row">
-          <p className="text-center text-body-sm text-outline sm:text-left">
-            Marcas de fabricantes presentes en el catálogo. No indican respaldo ni alianza.
-          </p>
-          <button
-            type="button"
-            onClick={() => setPaused((value) => !value)}
-            aria-pressed={paused}
-            className="flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-label-sm text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface motion-reduce:hidden"
-          >
-            <Icon name={paused ? 'play_arrow' : 'pause'} className="text-[18px]" />
-            {paused ? 'Reanudar el carrusel' : 'Pausar el carrusel'}
-          </button>
-        </div>
-      </Container>
+        </Container>
+      </div>
+      <p className="px-space-md pt-space-xs text-center text-label-sm text-outline">
+        Marcas de fabricantes presentes en el catálogo. No indican respaldo ni alianza.
+      </p>
     </section>
   );
 }

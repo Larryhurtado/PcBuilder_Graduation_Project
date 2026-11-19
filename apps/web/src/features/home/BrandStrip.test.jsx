@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -57,34 +56,18 @@ describe('Franja de marcas: carrusel', () => {
     }
   });
 
-  it('aclara que las marcas no indican respaldo ni alianza', () => {
+  it('aclara que las marcas no indican respaldo ni alianza, debajo de la franja', () => {
     render(<BrandStrip />);
     expect(
-      strip().getByText(
+      screen.getByText(
         'Marcas de fabricantes presentes en el catálogo. No indican respaldo ni alianza.',
       ),
     ).toBeInTheDocument();
   });
 });
 
-describe('Franja de marcas: pausa y movimiento reducido', () => {
-  it('el botón pausa y reanuda el carrusel', async () => {
-    const user = userEvent.setup();
-    const { container } = render(<BrandStrip />);
-    const track = container.querySelector('.brand-track');
-    expect(track.className).not.toContain('animation-play-state:paused');
-    await user.click(strip().getByRole('button', { name: 'Pausar el carrusel' }));
-    const resume = strip().getByRole('button', { name: 'Reanudar el carrusel' });
-    expect(resume).toHaveAttribute('aria-pressed', 'true');
-    expect(track.className).toContain('animation-play-state:paused');
-    await user.click(resume);
-    expect(strip().getByRole('button', { name: 'Pausar el carrusel' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
-  });
-
-  it('con movimiento reducido la pista no se anima, se acomoda en filas y no hay botón', () => {
+describe('Franja de marcas: movimiento reducido y pausa', () => {
+  it('con movimiento reducido la pista no se anima y se acomoda en filas', () => {
     const { container } = render(<BrandStrip />);
     const track = container.querySelector('.brand-track');
     expect(track.className).toContain('motion-reduce:animate-none');
@@ -92,8 +75,19 @@ describe('Franja de marcas: pausa y movimiento reducido', () => {
     expect(container.querySelector('.brand-track > ul[aria-hidden]').className).toContain(
       'motion-reduce:hidden',
     );
-    expect(strip().getByRole('button', { name: 'Pausar el carrusel' }).className).toContain(
-      'motion-reduce:hidden',
+  });
+
+  it('no tiene botón de pausa: la pausa es solo con el cursor o el foco', () => {
+    render(<BrandStrip />);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('la pausa al pasar el cursor y al enfocar está definida en la franja', () => {
+    const { container } = render(<BrandStrip />);
+    const wrapper = container.querySelector('.group');
+    expect(wrapper.className).toContain('hover:[&_.brand-track]:[animation-play-state:paused]');
+    expect(wrapper.className).toContain(
+      'focus-within:[&_.brand-track]:[animation-play-state:paused]',
     );
   });
 
