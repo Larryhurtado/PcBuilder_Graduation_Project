@@ -80,3 +80,93 @@ export function describeVerification({ status, reviewerNote, deadlineAt, canReap
 /** Aviso exacto que acompaña a "Publicar producto" mientras el negocio no esté verificado. */
 export const PUBLISH_BLOCKED_MESSAGE =
   'Aún no puedes publicar productos hasta que tu negocio sea verificado';
+
+/** Aviso de confianza que acompaña a la verificación en toda la plataforma. */
+export const TRUST_MESSAGE =
+  'La verificación confirma que el negocio existe; no garantiza el cumplimiento de sus ofertas.';
+
+/** Documentos que pide la verificación (los textos siguen el diseño; por confirmar con backend). */
+export const REQUIRED_DOCUMENTS = [
+  {
+    id: 'rut',
+    icon: 'receipt_long',
+    title: 'RUT o NIT actualizado',
+    text: 'Registro Único Tributario vigente, con la actividad económica de tu comercio.',
+  },
+  {
+    id: 'camara',
+    icon: 'corporate_fare',
+    title: 'Certificado de existencia',
+    text: 'Cámara de Comercio u homologada, con vigencia menor a 90 días a la fecha de radicación.',
+  },
+  {
+    id: 'cedula',
+    icon: 'badge',
+    title: 'Cédula del representante legal',
+    text: 'Cédula de ciudadanía por ambas caras, en alta resolución y sin reflejos.',
+  },
+];
+
+/**
+ * Tiempo que falta para una fecha límite, separado en días, horas y minutos. Devuelve null si la
+ * fecha no es válida y `expired: true` cuando ya pasó.
+ * @param {string | null | undefined} deadlineAt fecha ISO 8601
+ * @param {number} now milisegundos actuales
+ */
+export function timeLeft(deadlineAt, now) {
+  const end = deadlineAt ? Date.parse(deadlineAt) : Number.NaN;
+  if (Number.isNaN(end)) return null;
+  const ms = end - now;
+  if (ms <= 0) return { expired: true, days: 0, hours: 0, minutes: 0 };
+  const minutes = Math.floor(ms / 60_000);
+  return {
+    expired: false,
+    days: Math.floor(minutes / 1440),
+    hours: Math.floor((minutes % 1440) / 60),
+    minutes: minutes % 60,
+  };
+}
+
+const DAY = 86_400_000;
+
+/**
+ * Datos de ejemplo de cada estado, solo para el simulador de desarrollo (la API real los trae
+ * en GET /seller/verification/status).
+ * @param {string} status
+ * @param {number} now
+ */
+export function sampleVerification(status, now) {
+  const iso = (offset) => new Date(now + offset).toISOString();
+  const base = {
+    status,
+    submittedAt: null,
+    reviewerNote: null,
+    deadlineAt: null,
+    canReapplyAt: null,
+  };
+  switch (status) {
+    case 'pending_review':
+      return { ...base, submittedAt: iso(-2 * DAY) };
+    case 'correction_requested':
+      return {
+        ...base,
+        submittedAt: iso(-3 * DAY),
+        reviewerNote:
+          'El certificado de existencia tiene más de 90 días de expedición y la foto de la cédula tiene reflejos que impiden leerla.',
+        deadlineAt: iso(15 * DAY - 8 * 3_600_000),
+      };
+    case 'approved':
+      return { ...base, submittedAt: iso(-10 * DAY) };
+    case 'rejected':
+      return {
+        ...base,
+        submittedAt: iso(-12 * DAY),
+        reviewerNote: 'No pudimos validar la existencia del negocio con los documentos enviados.',
+        canReapplyAt: iso(30 * DAY),
+      };
+    case 'suspended':
+      return { ...base, submittedAt: iso(-40 * DAY), canReapplyAt: iso(30 * DAY) };
+    default:
+      return base;
+  }
+}

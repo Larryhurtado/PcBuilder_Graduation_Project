@@ -15,6 +15,7 @@ const NAV = [
   { to: '/vendedor', label: 'Dashboard', icon: 'dashboard', end: true },
   { to: '/vendedor/inventario', label: 'Inventario', icon: 'inventory_2' },
   { to: '/vendedor/publicar', label: 'Publicar producto', icon: 'add_circle' },
+  { to: '/vendedor/verificacion', label: 'Verificación', icon: 'verified_user', alert: true },
   { label: 'Métricas y clics', icon: 'monitoring', soon: true },
   { to: '/vendedor/negocio', label: 'Ajustes de tienda', icon: 'settings' },
 ];
@@ -22,7 +23,7 @@ const NAV = [
 const itemClass =
   'flex min-h-11 w-full items-center gap-space-sm rounded-xl px-space-sm text-label-md transition-colors motion-reduce:transition-none';
 
-function Nav({ onNavigate }) {
+function Nav({ onNavigate, unverified }) {
   return (
     <nav aria-label="Panel comercial" className="space-y-1">
       <p className="px-space-sm pb-1 text-[10px] font-semibold uppercase tracking-wider text-outline">
@@ -59,6 +60,13 @@ function Nav({ onNavigate }) {
           >
             <Icon name={item.icon} className="text-[20px]" />
             {item.label}
+            {item.alert && unverified && (
+              <span
+                role="img"
+                aria-label="Pendiente"
+                className="ml-auto h-2 w-2 rounded-full bg-unverifiable"
+              />
+            )}
           </NavLink>
         ),
       )}
@@ -141,6 +149,7 @@ export default function SellerLayout() {
 
   const view = verification.data ? describeVerification(verification.data) : null;
   const place = [store.data?.commercialCenter, store.data?.city].filter(Boolean).join(' · ');
+  const unverified = Boolean(verification.data) && verification.data.status !== 'approved';
   const closeMenu = () => setMenuOpen(false);
 
   return (
@@ -155,7 +164,7 @@ export default function SellerLayout() {
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between gap-space-lg border-r border-outline-variant bg-surface-container-low p-space-md lg:flex">
         <div className="space-y-space-lg">
           <Brand />
-          <Nav />
+          <Nav unverified={unverified} />
         </div>
         <StoreCard store={store.data} verification={verification.data} />
       </aside>
@@ -251,7 +260,7 @@ export default function SellerLayout() {
                 <Icon name="close" className="text-[22px]" />
               </button>
             </div>
-            <Nav onNavigate={closeMenu} />
+            <Nav onNavigate={closeMenu} unverified={unverified} />
           </div>
           <StoreCard store={store.data} verification={verification.data} onNavigate={closeMenu} />
         </div>

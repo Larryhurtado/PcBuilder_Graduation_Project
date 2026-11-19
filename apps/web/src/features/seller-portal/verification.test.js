@@ -1,5 +1,62 @@
 import { describe, expect, it } from 'vitest';
-import { describeVerification, PUBLISH_BLOCKED_MESSAGE } from './verification.js';
+import {
+  describeVerification,
+  PUBLISH_BLOCKED_MESSAGE,
+  REQUIRED_DOCUMENTS,
+  sampleVerification,
+  timeLeft,
+  TRUST_MESSAGE,
+} from './verification.js';
+
+const NOW = Date.UTC(2026, 10, 18, 12, 0, 0);
+
+describe('timeLeft', () => {
+  it('separa días, horas y minutos', () => {
+    const deadline = new Date(NOW + (15 * 1440 + 8 * 60 + 22) * 60_000).toISOString();
+    expect(timeLeft(deadline, NOW)).toEqual({ expired: false, days: 15, hours: 8, minutes: 22 });
+  });
+
+  it('menos de un día muestra 0 días', () => {
+    expect(timeLeft(new Date(NOW + 90 * 60_000).toISOString(), NOW)).toEqual({
+      expired: false,
+      days: 0,
+      hours: 1,
+      minutes: 30,
+    });
+  });
+
+  it('una fecha pasada está vencida', () => {
+    expect(timeLeft(new Date(NOW - 1000).toISOString(), NOW)).toMatchObject({ expired: true });
+    expect(timeLeft(new Date(NOW).toISOString(), NOW)).toMatchObject({ expired: true });
+  });
+
+  it('sin fecha o con una fecha inválida devuelve null', () => {
+    expect(timeLeft(null, NOW)).toBeNull();
+    expect(timeLeft(undefined, NOW)).toBeNull();
+    expect(timeLeft('no-es-fecha', NOW)).toBeNull();
+  });
+});
+
+describe('sampleVerification', () => {
+  it('cada estado trae los datos que su pantalla necesita', () => {
+    expect(sampleVerification('not_submitted', NOW).submittedAt).toBeNull();
+    expect(sampleVerification('pending_review', NOW).submittedAt).not.toBeNull();
+    const correction = sampleVerification('correction_requested', NOW);
+    expect(correction.reviewerNote).toBeTruthy();
+    expect(timeLeft(correction.deadlineAt, NOW)).toMatchObject({ expired: false, days: 14 });
+    expect(sampleVerification('rejected', NOW).canReapplyAt).not.toBeNull();
+    expect(sampleVerification('approved', NOW).status).toBe('approved');
+    expect(sampleVerification('suspended', NOW).status).toBe('suspended');
+  });
+});
+
+describe('textos fijos', () => {
+  it('pide los 3 documentos y no promete cumplimiento de las ofertas', () => {
+    expect(REQUIRED_DOCUMENTS.map((doc) => doc.id)).toEqual(['rut', 'camara', 'cedula']);
+    expect(TRUST_MESSAGE).toMatch(/confirma que el negocio existe/);
+    expect(TRUST_MESSAGE).toMatch(/no garantiza el cumplimiento de sus ofertas/);
+  });
+});
 
 describe('describeVerification', () => {
   it('aprobado es verde y confirma que el catálogo es visible', () => {
