@@ -330,114 +330,29 @@ describe('Inventario: precio con edición rápida', () => {
 });
 
 describe('Inventario: editar la oferta', () => {
-  const openDialog = async (user, offer = first) => {
-    await user.click(
-      rowOf(offer.component.displayName).getByRole('button', {
-        name: `Editar ${offer.component.displayName}`,
-      }),
-    );
-    return within(await screen.findByRole('dialog'));
-  };
-
-  it('muestra los valores actuales y guarda solo lo que cambió', async () => {
-    let body;
-    server.use(
-      http.patch(route('/seller/offers/:id'), async ({ request }) => {
-        body = await request.clone().json();
-        return undefined;
-      }),
-    );
-    const { user } = await open();
+  it('el botón Editar lleva a publicar con la oferta precargada', async () => {
+    const { user, router } = await open();
     await loaded();
-    const dialog = await openDialog(user);
-    expect(dialog.getByLabelText('Precio (COP)')).toHaveValue(String(first.priceCop));
-    expect(dialog.getByLabelText('Garantía (meses)')).toHaveValue('12');
-    const warranty = dialog.getByLabelText('Garantía (meses)');
-    await user.clear(warranty);
-    await user.type(warranty, '24');
-    await user.type(dialog.getByLabelText('Descripción (opcional)'), 'Caja sellada');
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(body).toEqual({ warrantyMonths: 24, description: 'Caja sellada' });
+    const link = rowOf(first.component.displayName).getByRole('link', {
+      name: `Editar ${first.component.displayName}`,
+    });
+    expect(link).toHaveAttribute('href', `/vendedor/publicar?editar=${first.offerId}`);
+    await user.click(link);
     expect(
-      await rowOf(first.component.displayName).findByText('Garantía 24 meses'),
+      await screen.findByRole('heading', { level: 1, name: 'Editar oferta' }),
     ).toBeInTheDocument();
+    expect(router.state.location.search).toBe(`?editar=${first.offerId}`);
   });
 
-  it('sin cambios se cierra sin llamar a la API', async () => {
-    let calls = 0;
-    server.use(
-      http.patch(route('/seller/offers/:id'), () => {
-        calls += 1;
-        return HttpResponse.json({});
+  it('ya no abre un diálogo de edición', async () => {
+    const { user } = await open();
+    await loaded();
+    await user.click(
+      rowOf(first.component.displayName).getByRole('link', {
+        name: `Editar ${first.component.displayName}`,
       }),
     );
-    const { user } = await open();
-    await loaded();
-    const dialog = await openDialog(user);
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(calls).toBe(0);
-  });
-
-  it('valida el precio, la garantía y la descripción', async () => {
-    const { user } = await open();
-    await loaded();
-    const dialog = await openDialog(user);
-    await user.clear(dialog.getByLabelText('Precio (COP)'));
-    await user.type(dialog.getByLabelText('Precio (COP)'), '0');
-    await user.clear(dialog.getByLabelText('Garantía (meses)'));
-    await user.type(dialog.getByLabelText('Garantía (meses)'), '121');
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    expect(await dialog.findByText(/precio entero mayor que 0/)).toBeInTheDocument();
-    expect(dialog.getByText('Escribe los meses de garantía, entre 0 y 120')).toBeInTheDocument();
-    expect(dialog.getByLabelText('Precio (COP)')).toHaveAttribute('aria-invalid', 'true');
-  });
-
-  it('vaciar la descripción la envía como null', async () => {
-    let body;
-    server.use(
-      http.patch(route('/seller/offers/:id'), async ({ request }) => {
-        body = await request.clone().json();
-        return undefined;
-      }),
-    );
-    const { user } = await open();
-    await loaded();
-    let dialog = await openDialog(user);
-    await user.type(dialog.getByLabelText('Descripción (opcional)'), 'Algo');
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    dialog = await openDialog(user);
-    await user.clear(dialog.getByLabelText('Descripción (opcional)'));
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    await waitFor(() => expect(body).toEqual({ description: null }));
-  });
-
-  it('si el servidor falla muestra el error y deja reintentar', async () => {
-    server.use(
-      http.patch(route('/seller/offers/:id'), () =>
-        HttpResponse.json(
-          { code: 'INTERNAL_ERROR', message: 'x', details: null, requestId: 'r' },
-          { status: 500 },
-        ),
-      ),
-    );
-    const { user } = await open();
-    await loaded();
-    const dialog = await openDialog(user);
-    await user.type(dialog.getByLabelText('Descripción (opcional)'), 'Algo');
-    await user.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
-    expect(await dialog.findByRole('alert')).toHaveTextContent('Ocurrió un error inesperado');
-    expect(dialog.getByRole('button', { name: 'Guardar cambios' })).toBeEnabled();
-  });
-
-  it('Cancelar cierra el diálogo sin guardar', async () => {
-    const { user } = await open();
-    await loaded();
-    const dialog = await openDialog(user);
-    await user.click(dialog.getByRole('button', { name: 'Cancelar' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 

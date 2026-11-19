@@ -12,7 +12,6 @@ import ConfirmDialog from '../../shared/ui/ConfirmDialog.jsx';
 import ErrorNotice from '../../shared/ui/ErrorNotice.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import SearchField from '../../shared/ui/SearchField.jsx';
-import EditOfferDialog from './EditOfferDialog.jsx';
 import { filterOffers, PAGE_SIZE, pageWindow, summarize } from './inventory.js';
 import { Delta, Kpi } from './kpi.jsx';
 import OfferRow, { COLUMNS } from './OfferRow.jsx';
@@ -147,7 +146,6 @@ export default function InventoryPage() {
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
-  const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
 
@@ -419,7 +417,6 @@ export default function InventoryPage() {
                 onSavePrice={(priceCop) =>
                   actions.update.mutateAsync({ id: offer.offerId, body: { priceCop } })
                 }
-                onEdit={() => setEditing(offer)}
                 onDelete={() => {
                   setDeleteError(null);
                   setDeleting(offer);
@@ -439,12 +436,6 @@ export default function InventoryPage() {
           </div>
         </section>
       )}
-
-      <EditOfferDialog
-        offer={editing}
-        onSave={(body) => actions.update.mutateAsync({ id: editing.offerId, body })}
-        onClose={() => setEditing(null)}
-      />
 
       <ConfirmDialog
         open={Boolean(deleting)}

@@ -123,14 +123,15 @@ export function useModels(category, brandId) {
 }
 
 /**
- * Publica una oferta: sube las fotos que falten y crea la oferta. Si algo falla a mitad de camino,
+ * Publica una oferta (o, con `original`, guarda los cambios de una publicada): sube las fotos
+ * nuevas y luego crea o actualiza la oferta. Si algo falla a mitad de camino,
  * las fotos ya subidas conservan su clave (`photo.key`) para no repetirse al reintentar.
  * `onPhoto(id, patch)` informa el avance de cada foto.
  */
 export function usePublishOffer(userId) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async ({ body, photos, onPhoto }) => {
+    mutationFn: async ({ body, photos, onPhoto, original }) => {
       const keys = [];
       for (const photo of photos) {
         let key = photo.key;
@@ -146,7 +147,17 @@ export function usePublishOffer(userId) {
         }
         keys.push(key);
       }
-      return createSellerOffer({ ...body, imageKeys: keys });
+      if (!original) return createSellerOffer({ ...body, imageKeys: keys });
+      // Editar: solo se envía lo que cambió; sin cambios no se llama a la API
+      const current = [...original.images]
+        .sort((a, b) => a.position - b.position)
+        .map((i) => i.key);
+      const patch = { ...body };
+      if (keys.length !== current.length || keys.some((key, index) => key !== current[index])) {
+        patch.imageKeys = keys;
+      }
+      if (Object.keys(patch).length === 0) return original;
+      return updateSellerOffer(original.offerId, patch);
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ['seller', userId, 'offers'] });

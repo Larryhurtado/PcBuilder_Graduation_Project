@@ -58,6 +58,43 @@ export function stepErrors(step, draft) {
   return errors;
 }
 
+/** Borrador con los datos de una oferta publicada (para editarla). */
+export function draftFromOffer(offer) {
+  return {
+    ...emptyDraft,
+    componentId: offer.component.id,
+    price: offer.priceCop.toLocaleString('es-CO'),
+    condition: offer.condition,
+    warranty: String(offer.warrantyMonths),
+    notes: offer.description ?? '',
+  };
+}
+
+/** Fotos ya guardadas de una oferta, en su orden (la primera es la portada). */
+export function photosFromOffer(offer) {
+  return [...offer.images]
+    .sort((a, b) => a.position - b.position)
+    .map((image, index) => ({
+      id: `guardada-${image.key}`,
+      file: { name: `Foto ${index + 1}`, size: null },
+      previewUrl: image.url,
+      key: image.key,
+      status: 'saved',
+      error: null,
+      existing: true,
+    }));
+}
+
+/** Solo lo que cambió respecto de la oferta publicada (PATCH pide al menos un campo). */
+export function toEditBody(draft, offer) {
+  const next = toOfferBody(draft);
+  const body = {};
+  if (next.priceCop !== offer.priceCop) body.priceCop = next.priceCop;
+  if (next.warrantyMonths !== offer.warrantyMonths) body.warrantyMonths = next.warrantyMonths;
+  if (next.description !== offer.description) body.description = next.description;
+  return body;
+}
+
 /** Cuerpo de POST /seller/offers (sin las fotos, que se agregan al subirlas). */
 export function toOfferBody(draft) {
   const notes = draft.notes.trim();

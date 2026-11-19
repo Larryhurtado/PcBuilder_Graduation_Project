@@ -227,7 +227,22 @@ export function createSellerOffersHandlers(guard) {
       if (!offer) return notFound();
       const parsed = updateOfferBodySchema.safeParse(await request.json().catch(() => null));
       if (!parsed.success) return error(422, 'VALIDATION_ERROR', 'Hay datos que no son válidos.');
-      const { imageKeys: _keys, ...fields } = parsed.data;
+      const { imageKeys, ...fields } = parsed.data;
+      if (imageKeys) {
+        const known = new Set(offer.images.map((image) => image.key));
+        const ownPrefix = `offers/${ctx.store.id}/`;
+        const bad = imageKeys.find(
+          (key) => !known.has(key) && !(key.startsWith(ownPrefix) && uploaded.has(key)),
+        );
+        if (bad || new Set(imageKeys).size !== imageKeys.length) {
+          return error(422, 'VALIDATION_ERROR', 'Una de las fotos no existe o no es tuya.');
+        }
+        fields.images = imageKeys.map((key, position) => ({
+          key,
+          url: `/storage/${key}`,
+          position,
+        }));
+      }
       return HttpResponse.json({ offer: publicOffer(replace(offer, fields)) });
     }),
 
