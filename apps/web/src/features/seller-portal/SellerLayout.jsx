@@ -8,6 +8,7 @@ import CategoryIcon from '../../shared/ui/CategoryIcon.jsx';
 import Dialog from '../../shared/ui/Dialog.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import NoticeHost from '../../shared/ui/NoticeHost.jsx';
+import OfflineBanner from '../../shared/ui/OfflineBanner.jsx';
 import { useMyStore, useVerificationStatus } from './queries.js';
 import { describeVerification, TONES } from './verification.js';
 
@@ -234,6 +235,7 @@ export default function SellerLayout() {
         </header>
 
         <main id="contenido" className="w-full flex-1">
+          <OfflineBanner />
           <Outlet />
         </main>
 

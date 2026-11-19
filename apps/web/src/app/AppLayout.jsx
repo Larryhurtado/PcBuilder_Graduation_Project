@@ -1,10 +1,14 @@
 import { Outlet } from 'react-router';
 import NoticeHost from '../shared/ui/NoticeHost.jsx';
+import OfflineBanner from '../shared/ui/OfflineBanner.jsx';
 import Footer from './Footer.jsx';
 import Navbar from './Navbar.jsx';
 
-/** Estructura común de todas las pantallas: barra superior fija, contenido y pie. */
-export default function AppLayout() {
+/**
+ * Marco público: barra superior fija, contenido y pie. Se usa también para mostrar una pantalla
+ * suelta (por ejemplo, la de cuenta equivocada) con la misma barra y el mismo pie.
+ */
+export function PublicFrame({ children }) {
   return (
     <div className="flex min-h-screen flex-col bg-surface text-on-surface">
       <a
@@ -15,10 +19,20 @@ export default function AppLayout() {
       </a>
       <Navbar />
       <main id="contenido" className="w-full flex-1 pt-16">
-        <Outlet />
+        <OfflineBanner />
+        {children}
       </main>
       <Footer />
       <NoticeHost />
     </div>
+  );
+}
+
+/** Estructura común de todas las pantallas públicas. */
+export default function AppLayout() {
+  return (
+    <PublicFrame>
+      <Outlet />
+    </PublicFrame>
   );
 }

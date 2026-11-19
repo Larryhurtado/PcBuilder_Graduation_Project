@@ -86,6 +86,15 @@ export default function LoginPage() {
         </>
       }
     >
+      {next && (
+        <p
+          role="note"
+          className="flex items-start gap-space-xs rounded-xl bg-surface p-space-sm text-body-sm text-on-surface-variant"
+        >
+          <Icon name="lock" className="mt-0.5 text-[18px] text-outline" />
+          Inicia sesión para continuar.
+        </p>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-space-md">
         <TextField
           id="email"
