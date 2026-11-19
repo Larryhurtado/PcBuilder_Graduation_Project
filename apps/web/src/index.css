@@ -132,6 +132,18 @@
   --text-code-metric: 0.8125rem;
   --text-code-metric--line-height: 1.125rem;
   --text-code-metric--font-weight: 500;
+
+  /* Carrusel de marcas del inicio: la pista va duplicada, así que -50 % cierra el bucle sin saltos */
+  --animate-brand-scroll: brand-scroll 45s linear infinite;
+
+  @keyframes brand-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 /* Cifras tabulares: precios, vatios, milímetros y frecuencias no deben "saltar" al actualizarse. */
