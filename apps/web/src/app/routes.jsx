@@ -8,6 +8,9 @@ import SharedBuildPage from '../features/builds/SharedBuildPage.jsx';
 import SavedBuildsPage from '../features/builds/SavedBuildsPage.jsx';
 import CatalogPage from '../features/catalog/CatalogPage.jsx';
 import FavoritesPage from '../features/favorites/FavoritesPage.jsx';
+import AttributionPage from '../features/legal/AttributionPage.jsx';
+import PrivacyPage from '../features/legal/PrivacyPage.jsx';
+import TermsPage from '../features/legal/TermsPage.jsx';
 import HomePage from '../features/home/HomePage.jsx';
 import ProductPage from '../features/product/ProductPage.jsx';
 import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
@@ -22,18 +25,8 @@ import StoreProfilePage from '../features/stores/StoreProfilePage.jsx';
 import StoresPage from '../features/stores/StoresPage.jsx';
 import RequireAuth from '../shared/session/RequireAuth.jsx';
 import AppLayout from './AppLayout.jsx';
-import { ComingSoonPage, NotFoundPage } from './pages.jsx';
+import { NotFoundPage } from './pages.jsx';
 import Root from './Root.jsx';
-
-// Pantallas pendientes (docs/contexto-frontend.md, sección 11). Cada una se reemplaza por su
-// componente real al construirla.
-const pendingPublic = [
-  ['terminos', 'Términos y condiciones'],
-  ['privacidad', 'Política de privacidad'],
-  ['atribucion', 'Atribución de datos'],
-];
-
-const soon = ([path, title]) => ({ path, element: <ComingSoonPage title={title} /> });
 
 export const routes = [
   {
@@ -54,7 +47,9 @@ export const routes = [
           { path: 'recuperar', element: <RecoverPage /> },
           { path: 'restablecer', element: <ResetPasswordPage /> },
           { path: 'vender', element: <BecomeSellerPage /> },
-          ...pendingPublic.map(soon),
+          { path: 'terminos', element: <TermsPage /> },
+          { path: 'privacidad', element: <PrivacyPage /> },
+          { path: 'atribucion', element: <AttributionPage /> },
           {
             element: <RequireAuth />,
             children: [

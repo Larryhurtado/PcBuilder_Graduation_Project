@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { BUILDCORES_REPO_URL, LICENSE_NAME } from '../shared/attribution.js';
 import { PLATFORM_NAME } from '../shared/config.js';
 import Container from '../shared/ui/Container.jsx';
 
@@ -56,12 +57,12 @@ export default function Footer() {
           <p className="text-center text-body-sm md:text-left">
             Datos de componentes:{' '}
             <a
-              href="https://github.com/buildcores/buildcores-open-db"
+              href={BUILDCORES_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-on-surface hover:underline"
             >
-              BuildCores OpenDB (CC BY-NC-SA 4.0)
+              BuildCores OpenDB ({LICENSE_NAME})
             </a>{' '}
             · Plataforma educativa, sin fines comerciales.
           </p>
