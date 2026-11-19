@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
+import { ApiError, getErrorMessage } from '../../shared/api/client.js';
 import { PLATFORM_NAME } from '../../shared/config.js';
+import { copyText } from '../../shared/lib/clipboard.js';
 import { formatCOPAmount } from '../../shared/lib/format.js';
-import ComingSoonButton from '../../shared/ui/ComingSoonButton.jsx';
 import Container from '../../shared/ui/Container.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import Toast from '../../shared/ui/Toast.jsx';
@@ -13,7 +14,9 @@ import QuoteModal from './QuoteModal.jsx';
 import RuleAlerts from './RuleAlerts.jsx';
 import SaveBuildDialog from './SaveBuildDialog.jsx';
 import SlotCard from './SlotCard.jsx';
+import { shareCurrentBuild } from './quickShare.js';
 import { SLOTS } from './slots.js';
+import { buildShareUrl } from '../builds/share.js';
 import { useBuildStore } from './store.js';
 import SummaryBar from './SummaryBar.jsx';
 
@@ -76,6 +79,30 @@ export default function BuilderPage() {
   // Aviso con el que llega quien abre un armado guardado (viene en el estado de la navegación)
   const location = useLocation();
   const [openedNotice, setOpenedNotice] = useState(location.state?.notice ?? null);
+  const [sharing, setSharing] = useState(false);
+  const [shareNotice, setShareNotice] = useState(null);
+
+  /** Crea el armado sin sesión (si cambió desde la última vez) y copia su enlace. */
+  const share = async () => {
+    if (analysis.count === 0 || sharing) return;
+    setSharing(true);
+    try {
+      const code = await shareCurrentBuild(parts, analysis.failures.length);
+      const copied = await copyText(buildShareUrl(code));
+      setShareNotice(
+        copied
+          ? { message: `Enlace copiado. Código ${code}.` }
+          : { tone: 'error', message: `No se pudo copiar. El código del armado es ${code}.` },
+      );
+    } catch (error) {
+      setShareNotice({
+        tone: 'error',
+        message: error instanceof ApiError ? error.userMessage : getErrorMessage(error),
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     document.title = `Arma tu PC · ${PLATFORM_NAME}`;
@@ -136,11 +163,16 @@ export default function BuilderPage() {
             <Icon name="description" className="text-[20px] text-primary" />
             <span>Vista cotización formal</span>
           </button>
-          <ComingSoonButton
-            icon="share"
-            label="Exportar ID"
-            className="h-12 bg-primary-container px-space-md text-on-primary-container"
-          />
+          <button
+            type="button"
+            onClick={share}
+            disabled={analysis.count === 0 || sharing}
+            title={analysis.count === 0 ? 'Agrega al menos una pieza para compartir' : undefined}
+            className="flex h-12 items-center gap-2 rounded-xl bg-primary-container px-space-md text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Icon name="share" className="text-[20px]" />
+            {sharing ? 'Creando enlace…' : 'Exportar ID'}
+          </button>
         </div>
       </div>
 
@@ -227,6 +259,8 @@ export default function BuilderPage() {
             parts={parts}
             onPick={setPickerCategory}
             onSave={() => setSaveOpen(true)}
+            onShare={share}
+            sharing={sharing}
           />
         </div>
       </div>
@@ -244,6 +278,13 @@ export default function BuilderPage() {
         conflicts={analysis.failures.length}
       />
       {openedNotice && <Toast message={openedNotice} onClose={() => setOpenedNotice(null)} />}
+      {shareNotice && (
+        <Toast
+          message={shareNotice.message}
+          tone={shareNotice.tone}
+          onClose={() => setShareNotice(null)}
+        />
+      )}
       <QuoteModal
         open={quoteOpen}
         onClose={() => setQuoteOpen(false)}

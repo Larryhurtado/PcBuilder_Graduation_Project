@@ -7,17 +7,9 @@ import Dialog from '../../shared/ui/Dialog.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import { buildShareUrl } from '../builds/share.js';
 import { useSaveBuild } from '../builds/queries.js';
+import { DEFAULT_NAME, toItems } from './quickShare.js';
 
 const TITLE_ID = 'guardar-armado-titulo';
-const DEFAULT_NAME = 'Mi configuración';
-
-/** Las piezas del armado como las espera POST /builds (el precio sale de la oferta elegida). */
-const toItems = (parts) =>
-  Object.values(parts).map((offer) => ({
-    category: offer.component.category,
-    componentId: offer.component.id,
-    offerId: offer.offerId,
-  }));
 
 function SavedView({ build, user, onClose }) {
   const [copied, setCopied] = useState(null);
