@@ -5,6 +5,8 @@ export {
   userRoleValues,
   registerBodySchema,
   loginBodySchema,
+  forgotBodySchema,
+  resetBodySchema,
   userSchema,
   authResponseSchema,
   meResponseSchema,

@@ -30,6 +30,10 @@ export const errorCodes = {
   UNAUTHENTICATED: { status: 401, message: 'Debes iniciar sesión para continuar.' },
   INVALID_CREDENTIALS: { status: 401, message: 'Correo o contraseña incorrectos.' },
   EMAIL_TAKEN: { status: 409, message: 'Ya existe una cuenta con ese correo.' },
+  INVALID_RESET_TOKEN: {
+    status: 400,
+    message: 'El enlace de recuperación no es válido o venció. Pide uno nuevo.',
+  },
   STORE_NOT_FOUND: { status: 404, message: 'No encontramos ese comercio.' },
   NOT_FOUND: { status: 404, message: 'No se encontró lo que buscas.' },
   INTERNAL_ERROR: { status: 500, message: 'Ocurrió un error inesperado. Intenta de nuevo.' },

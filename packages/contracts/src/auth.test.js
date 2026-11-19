@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { authResponseSchema, loginBodySchema, registerBodySchema } from './index.js';
+import {
+  authResponseSchema,
+  forgotBodySchema,
+  loginBodySchema,
+  registerBodySchema,
+  resetBodySchema,
+} from './index.js';
 
 const ok = { email: 'Ana@Correo.co', password: 'clave1234', fullName: ' Ana ', acceptTerms: true };
 
@@ -48,5 +54,35 @@ describe('loginBodySchema y authResponseSchema', () => {
     expect(
       authResponseSchema.safeParse({ ...body, user: { ...body.user, role: 'dios' } }).success,
     ).toBe(false);
+  });
+});
+
+describe('forgotBodySchema', () => {
+  it('pide solo el correo y lo normaliza', () => {
+    expect(forgotBodySchema.parse({ email: '  Ana@Correo.co ' })).toEqual({
+      email: 'ana@correo.co',
+    });
+  });
+
+  it('rechaza un correo mal escrito y los campos de más', () => {
+    expect(forgotBodySchema.safeParse({ email: 'no-es-correo' }).success).toBe(false);
+    expect(forgotBodySchema.safeParse({ email: 'ana@correo.co', role: 'admin' }).success).toBe(
+      false,
+    );
+    expect(forgotBodySchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('resetBodySchema', () => {
+  it('pide el token y una contraseña con las reglas del registro', () => {
+    expect(resetBodySchema.safeParse({ token: 'abc', password: 'abcd1234' }).success).toBe(true);
+    for (const bad of ['corta1', 'sololetras', '12345678']) {
+      expect(resetBodySchema.safeParse({ token: 'abc', password: bad }).success, bad).toBe(false);
+    }
+  });
+
+  it('rechaza el token vacío o ausente', () => {
+    expect(resetBodySchema.safeParse({ token: '  ', password: 'abcd1234' }).success).toBe(false);
+    expect(resetBodySchema.safeParse({ password: 'abcd1234' }).success).toBe(false);
   });
 });
