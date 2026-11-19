@@ -68,7 +68,15 @@ export function PriceReference({ componentId, price }) {
 }
 
 /** Paso 2: precio, condición, garantía y notas (stock y SKU llegarán con la API). */
-export default function StepConditions({ draft, errors, onChange, onNext, onBack, componentName }) {
+export default function StepConditions({
+  draft,
+  errors,
+  onChange,
+  onNext,
+  onBack,
+  componentName,
+  conditionLocked = false,
+}) {
   const style = (error) => `${inputClass} ${error ? badBorder : okBorder}`;
   const formatPrice = (text) => {
     const digits = text.replace(/\D/g, '');
@@ -125,6 +133,7 @@ export default function StepConditions({ draft, errors, onChange, onNext, onBack
                   name="condicion"
                   value={value}
                   checked={selected}
+                  disabled={conditionLocked}
                   onChange={() => onChange({ condition: value })}
                   className="mt-1 h-4 w-4 accent-primary-container"
                 />
@@ -136,6 +145,11 @@ export default function StepConditions({ draft, errors, onChange, onNext, onBack
             );
           })}
         </div>
+        {conditionLocked && (
+          <p className="text-body-sm text-outline">
+            La condición no se puede cambiar: para ofrecerlo en otro estado, publica otra oferta.
+          </p>
+        )}
       </fieldset>
 
       <div className="grid gap-space-md sm:grid-cols-3">

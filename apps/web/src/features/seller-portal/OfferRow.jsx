@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { formatWarranty } from '../../shared/lib/format.js';
 import { categoryLabels } from '../../shared/lib/specs.js';
 import CategoryIcon from '../../shared/ui/CategoryIcon.jsx';
@@ -20,7 +21,7 @@ function Label({ children }) {
  * Una oferta del inventario: componente, condición, precio con edición rápida, garantía, interruptor
  * de visibilidad y acciones. `canEdit` es falso mientras el negocio no esté verificado: la API no
  * deja editar ni pausar, pero sí eliminar.
- * @param {{ offer: any, canEdit: boolean, togglePending: boolean, onToggle: () => void, onSavePrice: (price: number) => Promise<unknown>, onEdit: () => void, onDelete: () => void }} props
+ * @param {{ offer: any, canEdit: boolean, togglePending: boolean, onToggle: () => void, onSavePrice: (price: number) => Promise<unknown>, onDelete: () => void }} props
  */
 export default function OfferRow({
   offer,
@@ -28,7 +29,6 @@ export default function OfferRow({
   togglePending,
   onToggle,
   onSavePrice,
-  onEdit,
   onDelete,
 }) {
   const { component } = offer;
@@ -109,16 +109,26 @@ export default function OfferRow({
       </div>
 
       <div className="flex items-center gap-1 lg:justify-end">
-        <button
-          type="button"
-          onClick={onEdit}
-          disabled={!canEdit}
-          aria-label={`Editar ${name}`}
-          title={canEdit ? 'Editar la oferta' : 'Disponible cuando tu negocio esté verificado'}
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-outline transition-colors hover:bg-surface hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-outline"
-        >
-          <Icon name="edit_note" className="text-[22px]" />
-        </button>
+        {canEdit ? (
+          <Link
+            to={`/vendedor/publicar?editar=${offer.offerId}`}
+            aria-label={`Editar ${name}`}
+            title="Editar la oferta"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-outline transition-colors hover:bg-surface hover:text-on-surface"
+          >
+            <Icon name="edit_note" className="text-[22px]" />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label={`Editar ${name}`}
+            title="Disponible cuando tu negocio esté verificado"
+            className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-lg text-outline opacity-50"
+          >
+            <Icon name="edit_note" className="text-[22px]" />
+          </button>
+        )}
         <button
           type="button"
           onClick={onDelete}

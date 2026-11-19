@@ -14,6 +14,7 @@ const PHOTO_STATUS = {
   ready: 'Lista',
   uploading: 'Subiendo…',
   done: 'Subida',
+  saved: 'Guardada',
   error: 'Falló',
 };
 
@@ -60,6 +61,7 @@ export default function StepReview({
   onPublish,
   onBack,
   onEdit,
+  editing = false,
 }) {
   const duplicate = error instanceof ApiError && error.code === 'OFFER_DUPLICATE';
   const rows = [
@@ -79,7 +81,9 @@ export default function StepReview({
           Confirmación de publicación
         </h2>
         <p className="text-body-sm text-on-surface-variant">
-          Revisa los datos antes de publicar: la oferta quedará visible en el catálogo.
+          {editing
+            ? 'Revisa los cambios antes de guardarlos.'
+            : 'Revisa los datos antes de publicar: la oferta quedará visible en el catálogo.'}
         </p>
       </header>
 
@@ -92,25 +96,26 @@ export default function StepReview({
         ))}
       </dl>
 
-      {photos.length > 0 && (publishing || photos.some((photo) => photo.status !== 'ready')) && (
-        <ul aria-label="Estado de las fotos" className="space-y-1">
-          {photos.map((photo) => (
-            <li
-              key={photo.id}
-              className="flex items-center justify-between gap-2 rounded-xl bg-surface-container px-space-sm py-2 text-body-sm"
-            >
-              <span className="truncate text-on-surface">{photo.file.name}</span>
-              <span
-                className={
-                  photo.status === 'error' ? 'text-incompatible' : 'text-on-surface-variant'
-                }
+      {photos.length > 0 &&
+        (publishing || photos.some((photo) => !['ready', 'saved'].includes(photo.status))) && (
+          <ul aria-label="Estado de las fotos" className="space-y-1">
+            {photos.map((photo) => (
+              <li
+                key={photo.id}
+                className="flex items-center justify-between gap-2 rounded-xl bg-surface-container px-space-sm py-2 text-body-sm"
               >
-                {PHOTO_STATUS[photo.status]}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+                <span className="truncate text-on-surface">{photo.file.name}</span>
+                <span
+                  className={
+                    photo.status === 'error' ? 'text-incompatible' : 'text-on-surface-variant'
+                  }
+                >
+                  {PHOTO_STATUS[photo.status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
       <Preview component={component} draft={draft} storeName={storeName} />
 
@@ -133,11 +138,13 @@ export default function StepReview({
 
       <StepActions onBack={onBack} backLabel="Volver a fotos">
         <div className="flex flex-col gap-space-sm sm:flex-row">
-          <ComingSoonButton
-            icon="save"
-            label="Guardar borrador"
-            className="h-12 border border-outline-variant px-5 text-on-surface"
-          />
+          {!editing && (
+            <ComingSoonButton
+              icon="save"
+              label="Guardar borrador"
+              className="h-12 border border-outline-variant px-5 text-on-surface"
+            />
+          )}
           <button
             type="button"
             onClick={onEdit}
@@ -151,8 +158,14 @@ export default function StepReview({
             onClick={onPublish}
             className="flex h-12 items-center justify-center gap-2 rounded-xl bg-primary-container px-6 text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Icon name="rocket_launch" className="text-[18px]" />
-            {publishing ? 'Publicando…' : 'Publicar oferta ahora'}
+            <Icon name={editing ? 'save' : 'rocket_launch'} className="text-[18px]" />
+            {editing
+              ? publishing
+                ? 'Guardando…'
+                : 'Guardar cambios'
+              : publishing
+                ? 'Publicando…'
+                : 'Publicar oferta ahora'}
           </button>
         </div>
       </StepActions>

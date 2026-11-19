@@ -65,10 +65,31 @@ export function ComponentCard({ componentId, compact = false }) {
 }
 
 /** Paso 1: categoría → marca → modelo, tomados de la base maestra (el vendedor no escribe specs). */
-export default function StepComponent({ draft, errors, onChange, onNext }) {
+export default function StepComponent({ draft, errors, onChange, onNext, readOnly = false }) {
   const brands = useBrands(draft.category);
   const models = useModels(draft.category, draft.brandId);
   const style = (error) => `${inputClass} ${error ? badBorder : okBorder}`;
+
+  // Al editar, el producto no se puede cambiar (la API no lo permite): solo se muestra su ficha
+  if (readOnly) {
+    return (
+      <section aria-labelledby="paso-componente" className="space-y-space-lg">
+        <header className="space-y-1">
+          <p className="text-label-sm uppercase tracking-wider text-primary">Paso 01 de 04</p>
+          <h2 id="paso-componente" className="text-headline-md text-on-surface">
+            Componente de la oferta
+          </h2>
+          <p className="text-body-sm text-on-surface-variant">
+            El producto no se puede cambiar. Para ofrecer otro, publica una oferta nueva.
+          </p>
+        </header>
+        <ComponentCard componentId={draft.componentId} />
+        <StepActions>
+          <PrimaryButton onClick={onNext}>Continuar a condiciones</PrimaryButton>
+        </StepActions>
+      </section>
+    );
+  }
 
   return (
     <section aria-labelledby="paso-componente" className="space-y-space-lg">

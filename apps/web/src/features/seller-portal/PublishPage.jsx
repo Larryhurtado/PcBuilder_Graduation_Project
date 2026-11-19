@@ -1,31 +1,90 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { PLATFORM_NAME } from '../../shared/config.js';
 import { notify } from '../../shared/notices.js';
 import { useSession } from '../../shared/session/useSession.js';
+import { getErrorMessage } from '../../shared/api/client.js';
+import ErrorNotice from '../../shared/ui/ErrorNotice.jsx';
 import Icon from '../../shared/ui/Icon.jsx';
 import { useComponent } from '../product/queries.js';
 import StepComponent, { ComponentCard } from './StepComponent.jsx';
 import StepConditions from './StepConditions.jsx';
 import StepPhotos from './StepPhotos.jsx';
 import StepReview from './StepReview.jsx';
-import { emptyDraft, progressPercent, STEPS, stepErrors, toOfferBody } from './publish.js';
-import { useMyStore, usePublishOffer, useVerificationStatus } from './queries.js';
+import {
+  draftFromOffer,
+  emptyDraft,
+  photosFromOffer,
+  progressPercent,
+  STEPS,
+  stepErrors,
+  toEditBody,
+  toOfferBody,
+} from './publish.js';
+import { useMyStore, usePublishOffer, useSellerOffers, useVerificationStatus } from './queries.js';
 import { describeVerification, PUBLISH_BLOCKED_MESSAGE, TONES } from './verification.js';
 
-/** Asistente de 4 pasos para publicar una oferta (/vendedor/publicar). */
+/**
+ * Publicar una oferta (/vendedor/publicar) o, con `?editar=<id>`, editar una ya publicada con todo
+ * precargado. Para editar primero se espera la lista de ofertas del vendedor.
+ */
 export default function PublishPage() {
+  const { user } = useSession();
+  const [params] = useSearchParams();
+  const editId = params.get('editar');
+  const offers = useSellerOffers(editId ? user?.id : undefined);
+
+  if (!editId) return <PublishWizard />;
+  if (offers.isError) {
+    return (
+      <div className="mx-auto w-full max-w-[85rem] p-space-md lg:p-space-lg">
+        <ErrorNotice message={getErrorMessage(offers.error)} onRetry={offers.refetch} />
+      </div>
+    );
+  }
+  if (!offers.data) {
+    return (
+      <div
+        role="status"
+        aria-label="Cargando la oferta"
+        className="mx-auto h-96 w-full max-w-[85rem] animate-pulse rounded-2xl bg-surface-container-low"
+      />
+    );
+  }
+  const offer = offers.data.find((item) => item.offerId === editId);
+  if (!offer) {
+    return (
+      <div className="mx-auto flex w-full max-w-[85rem] flex-col items-start gap-space-sm p-space-md lg:p-space-lg">
+        <h1 className="text-headline-md text-on-surface">No encontramos esa oferta</h1>
+        <p className="text-body-md text-on-surface-variant">
+          Puede que ya no exista o que no sea de tu negocio.
+        </p>
+        <Link
+          to="/vendedor/inventario"
+          className="inline-flex h-11 items-center rounded-xl bg-primary-container px-6 text-label-md text-on-primary-container"
+        >
+          Volver al inventario
+        </Link>
+      </div>
+    );
+  }
+  return <PublishWizard key={offer.offerId} offer={offer} />;
+}
+
+/** Asistente de 4 pasos; con `offer` edita esa oferta (producto y condición quedan fijos). */
+function PublishWizard({ offer }) {
   const { user } = useSession();
   const navigate = useNavigate();
   const verification = useVerificationStatus(user?.id);
   const store = useMyStore(user?.id);
   const publish = usePublishOffer(user?.id);
 
-  const [step, setStep] = useState(0);
-  const [reached, setReached] = useState(0);
-  const [draft, setDraft] = useState(emptyDraft);
+  const editing = Boolean(offer);
+  const [step, setStep] = useState(editing ? 1 : 0);
+  const [reached, setReached] = useState(editing ? 3 : 0);
+  const [draft, setDraft] = useState(() => (offer ? draftFromOffer(offer) : emptyDraft));
   const [errors, setErrors] = useState({});
-  const [photos, setPhotos] = useState([]);
+  const [photos, setPhotos] = useState(() => (offer ? photosFromOffer(offer) : []));
   const body = useRef(null);
   const firstRender = useRef(true);
   const photosRef = useRef(photos);
@@ -39,8 +98,8 @@ export default function PublishPage() {
   const tone = verification.data ? describeVerification(verification.data) : null;
 
   useEffect(() => {
-    document.title = `Publicar producto · ${PLATFORM_NAME}`;
-  }, []);
+    document.title = `${editing ? 'Editar oferta' : 'Publicar producto'} · ${PLATFORM_NAME}`;
+  }, [editing]);
 
   // Al cambiar de paso, el foco pasa al título del paso para quien usa lector de pantalla o teclado
   useEffect(() => {
@@ -57,7 +116,7 @@ export default function PublishPage() {
   useEffect(
     () => () => {
       for (const photo of photosRef.current) {
-        if (photo.previewUrl && typeof URL.revokeObjectURL === 'function') {
+        if (!photo.existing && photo.previewUrl && typeof URL.revokeObjectURL === 'function') {
           URL.revokeObjectURL(photo.previewUrl);
         }
       }
@@ -77,6 +136,7 @@ export default function PublishPage() {
   };
 
   const next = () => {
+    if (editing && step === 0) return goTo(1);
     const found = stepErrors(step, draft);
     setErrors(found);
     if (Object.keys(found).length === 0) goTo(step + 1);
@@ -89,10 +149,19 @@ export default function PublishPage() {
 
   const submit = () => {
     publish.mutate(
-      { body: toOfferBody(draft), photos, onPhoto: updatePhoto },
       {
-        onSuccess: (offer) => {
-          notify({ message: `${offer.component.displayName} se publicó en tu inventario.` });
+        body: editing ? toEditBody(draft, offer) : toOfferBody(draft),
+        photos,
+        onPhoto: updatePhoto,
+        original: offer,
+      },
+      {
+        onSuccess: (saved) => {
+          notify({
+            message: `${saved.component.displayName} ${
+              editing ? 'se actualizó.' : 'se publicó en tu inventario.'
+            }`,
+          });
           navigate('/vendedor/inventario');
         },
       },
@@ -107,14 +176,16 @@ export default function PublishPage() {
       <header className="flex flex-col justify-between gap-space-md lg:flex-row lg:items-end">
         <div className="space-y-space-xs">
           <nav aria-label="Ruta" className="text-label-sm uppercase tracking-wider text-outline">
-            Portal B2B / Catálogo canónico / <span className="text-primary">Nueva oferta</span>
+            Portal B2B / Catálogo canónico /{' '}
+            <span className="text-primary">{editing ? 'Editar oferta' : 'Nueva oferta'}</span>
           </nav>
           <h1 className="text-headline-lg-mobile text-on-surface md:text-headline-lg">
-            Publicar nueva oferta
+            {editing ? 'Editar oferta' : 'Publicar nueva oferta'}
           </h1>
           <p className="max-w-2xl text-body-md text-on-surface-variant">
-            Vincula tu inventario físico al catálogo canónico de componentes, con verificación de
-            compatibilidad automática.
+            {editing
+              ? 'Cambia el precio, la garantía, las notas o las fotos. El producto y su condición no se pueden cambiar: para eso publica otra oferta.'
+              : 'Vincula tu inventario físico al catálogo canónico de componentes, con verificación de compatibilidad automática.'}
           </p>
         </div>
         {tone && (
@@ -153,13 +224,13 @@ export default function PublishPage() {
       <section aria-label="Progreso del alta" className="space-y-space-sm">
         <div className="flex items-center justify-between gap-2">
           <p className="text-label-sm uppercase tracking-wider text-on-surface-variant">
-            Proceso de alta de producto
+            {editing ? 'Proceso de edición de la oferta' : 'Proceso de alta de producto'}
           </p>
           <p className="tnum text-label-md text-primary">{percent}% completado</p>
         </div>
         <div
           role="progressbar"
-          aria-label="Avance del alta de producto"
+          aria-label={editing ? 'Avance de la edición' : 'Avance del alta de producto'}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={percent}
@@ -224,7 +295,13 @@ export default function PublishPage() {
           }`}
         >
           {step === 0 && (
-            <StepComponent draft={draft} errors={errors} onChange={change} onNext={next} />
+            <StepComponent
+              draft={draft}
+              errors={errors}
+              onChange={change}
+              onNext={next}
+              readOnly={editing}
+            />
           )}
           {step === 1 && (
             <StepConditions
@@ -234,6 +311,7 @@ export default function PublishPage() {
               onNext={next}
               onBack={back}
               componentName={component.data?.displayName ?? ''}
+              conditionLocked={editing}
             />
           )}
           {step === 2 && (
@@ -249,7 +327,8 @@ export default function PublishPage() {
               error={publish.error}
               onPublish={submit}
               onBack={back}
-              onEdit={() => goTo(0)}
+              onEdit={() => goTo(editing ? 1 : 0)}
+              editing={editing}
             />
           )}
         </fieldset>

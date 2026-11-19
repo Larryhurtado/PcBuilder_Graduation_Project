@@ -33,7 +33,7 @@ export default function StepPhotos({ photos, onChange, onNext, onBack }) {
   };
 
   const remove = (photo) => {
-    if (photo.previewUrl && typeof URL.revokeObjectURL === 'function') {
+    if (!photo.existing && photo.previewUrl && typeof URL.revokeObjectURL === 'function') {
       URL.revokeObjectURL(photo.previewUrl);
     }
     onChange(photos.filter((item) => item.id !== photo.id));
@@ -133,7 +133,7 @@ export default function StepPhotos({ photos, onChange, onNext, onBack }) {
               <div className="min-w-0 flex-1 space-y-0.5">
                 <p className="truncate text-label-md text-on-surface">{photo.file.name}</p>
                 <p className="text-body-sm text-outline">
-                  {formatBytes(photo.file.size)}
+                  {photo.file.size !== null && formatBytes(photo.file.size)}
                   {index === 0 && <span className="ml-2 text-primary">Foto principal</span>}
                 </p>
                 {index > 0 && (
