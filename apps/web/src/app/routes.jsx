@@ -1,4 +1,6 @@
 import AccountPage from '../features/account/AccountPage.jsx';
+import RecoverPage from '../features/auth/RecoverPage.jsx';
+import ResetPasswordPage from '../features/auth/ResetPasswordPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import RegisterPage from '../features/auth/RegisterPage.jsx';
 import BuilderPage from '../features/builder/BuilderPage.jsx';
@@ -25,7 +27,6 @@ import Root from './Root.jsx';
 // Pantallas pendientes (docs/contexto-frontend.md, sección 11). Cada una se reemplaza por su
 // componente real al construirla.
 const pendingPublic = [
-  ['recuperar', 'Recuperar contraseña'],
   ['terminos', 'Términos y condiciones'],
   ['privacidad', 'Política de privacidad'],
   ['atribucion', 'Atribución de datos'],
@@ -49,6 +50,8 @@ export const routes = [
           { path: 'tiendas/:id', element: <StoreProfilePage /> },
           { path: 'ingresar', element: <LoginPage /> },
           { path: 'registro', element: <RegisterPage /> },
+          { path: 'recuperar', element: <RecoverPage /> },
+          { path: 'restablecer', element: <ResetPasswordPage /> },
           { path: 'vender', element: <BecomeSellerPage /> },
           ...pendingPublic.map(soon),
           {

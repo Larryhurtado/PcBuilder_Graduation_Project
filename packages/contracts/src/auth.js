@@ -34,6 +34,21 @@ export const loginBodySchema = z.strictObject({
   password: z.string().min(1).max(72),
 });
 
+/**
+ * Recuperar contraseña, paso 1: solo el correo. La API responde 200 igual exista o no la cuenta,
+ * para no revelar qué correos están registrados.
+ */
+export const forgotBodySchema = z.strictObject({ email });
+
+/**
+ * Recuperar contraseña, paso 2: el token del enlace del correo (un solo uso) y la contraseña nueva,
+ * con las mismas reglas del registro.
+ */
+export const resetBodySchema = z.strictObject({
+  token: z.string().trim().min(1).max(200),
+  password,
+});
+
 export const userSchema = z.object({
   id: z.guid(),
   email: z.string(),

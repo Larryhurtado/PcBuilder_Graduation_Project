@@ -1,7 +1,7 @@
 // Autenticación simulada (POST /auth/login, /auth/refresh, /auth/logout y GET /me). Imita la cookie
 // de refresco con una variable: mientras haya "sesión", /auth/refresh devuelve un token nuevo.
 // Las cuentas de abajo son SOLO de demostración para el desarrollo con VITE_USE_MOCKS=true.
-import { registerBodySchema } from '@hw/contracts';
+import { forgotBodySchema, registerBodySchema, resetBodySchema } from '@hw/contracts';
 import { http, HttpResponse } from 'msw';
 
 export const demoUsers = [
@@ -37,6 +37,17 @@ const error = (status, code, message) =>
 /** Cuentas existentes: las de demostración más las que se creen con el registro simulado. */
 let users = [...demoUsers];
 
+/** Tokens de recuperación de contraseña emitidos (token → correo); de un solo uso. */
+let resetTokens = new Map();
+
+/**
+ * Solo desarrollo: el token de recuperación más reciente de un correo (en producción llega por
+ * correo). Lo usa el recuadro de la pantalla de recuperación para poder probar el flujo sin correo.
+ */
+export function getMockResetToken(email) {
+  return [...resetTokens.entries()].reverse().find(([, owner]) => owner === email)?.[0] ?? null;
+}
+
 /** Usuario con "cookie de refresco" vigente (null = visitante). */
 let current = null;
 
@@ -61,6 +72,7 @@ export function authResponseFor(user) {
 export function resetMockAuth() {
   current = null;
   users = [...demoUsers];
+  resetTokens = new Map();
 }
 
 /** Deja una sesión simulada abierta, como si ya hubiera una cookie de refresco (para pruebas). */
@@ -98,6 +110,32 @@ export const authHandlers = [
     if (!user) return error(401, 'INVALID_CREDENTIALS', 'Correo o contraseña incorrectos.');
     current = user;
     return HttpResponse.json(authResponse(user));
+  }),
+
+  // Recuperar contraseña: responde igual exista o no la cuenta (no revela qué correos hay)
+  http.post(api('/auth/forgot'), async ({ request }) => {
+    const parsed = forgotBodySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return error(422, 'VALIDATION_ERROR', 'Hay datos que no son válidos.');
+    const { email } = parsed.data;
+    if (users.some((item) => item.email === email)) {
+      // Un enlace nuevo deja sin efecto los anteriores del mismo correo
+      resetTokens = new Map([...resetTokens].filter(([, owner]) => owner !== email));
+      resetTokens.set(`mock-reset-${crypto.randomUUID()}`, email);
+    }
+    return HttpResponse.json({});
+  }),
+
+  http.post(api('/auth/reset'), async ({ request }) => {
+    const parsed = resetBodySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return error(422, 'VALIDATION_ERROR', 'Hay datos que no son válidos.');
+    const { token, password } = parsed.data;
+    const email = resetTokens.get(token);
+    if (!email) {
+      return error(400, 'INVALID_RESET_TOKEN', 'El enlace de recuperación no es válido o venció.');
+    }
+    resetTokens.delete(token);
+    users = users.map((item) => (item.email === email ? { ...item, password } : item));
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.post(api('/auth/refresh'), () =>
