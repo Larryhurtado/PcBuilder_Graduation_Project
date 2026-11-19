@@ -16,7 +16,7 @@ const NAV = [
   { to: '/vendedor/inventario', label: 'Inventario', icon: 'inventory_2' },
   { to: '/vendedor/publicar', label: 'Publicar producto', icon: 'add_circle' },
   { to: '/vendedor/verificacion', label: 'Verificación', icon: 'verified_user', alert: true },
-  { label: 'Métricas y clics', icon: 'monitoring', soon: true },
+  { to: '/vendedor/metricas', label: 'Métricas y clics', icon: 'monitoring' },
   { to: '/vendedor/negocio', label: 'Ajustes de tienda', icon: 'settings' },
 ];
 

@@ -13,6 +13,7 @@ import ProductPage from '../features/product/ProductPage.jsx';
 import BecomeSellerPage from '../features/seller/BecomeSellerPage.jsx';
 import DashboardPage from '../features/seller-portal/DashboardPage.jsx';
 import InventoryPage from '../features/seller-portal/InventoryPage.jsx';
+import MetricsPage from '../features/seller-portal/MetricsPage.jsx';
 import PublishPage from '../features/seller-portal/PublishPage.jsx';
 import SettingsPage from '../features/seller-portal/SettingsPage.jsx';
 import VerificationPage from '../features/seller-portal/VerificationPage.jsx';
@@ -74,6 +75,7 @@ export const routes = [
             children: [
               { path: 'vendedor', element: <DashboardPage /> },
               { path: 'vendedor/inventario', element: <InventoryPage /> },
+              { path: 'vendedor/metricas', element: <MetricsPage /> },
               { path: 'vendedor/publicar', element: <PublishPage /> },
               { path: 'vendedor/verificacion', element: <VerificationPage /> },
               { path: 'vendedor/negocio', element: <SettingsPage /> },

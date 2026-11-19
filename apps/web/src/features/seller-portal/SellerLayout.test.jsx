@@ -45,9 +45,12 @@ describe('Marco del portal del vendedor', () => {
     );
   });
 
-  it('"Métricas y clics" está deshabilitado como "Próximamente"', async () => {
+  it('"Métricas y clics" lleva a las métricas', async () => {
     await open();
-    expect(menu().getByRole('button', { name: /Métricas y clics/ })).toBeDisabled();
+    expect(menu().getByRole('link', { name: 'Métricas y clics' })).toHaveAttribute(
+      'href',
+      '/vendedor/metricas',
+    );
   });
 
   it('la barra superior muestra el negocio, su ubicación y el estado de verificación', async () => {
