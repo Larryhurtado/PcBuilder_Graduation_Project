@@ -39,6 +39,7 @@ Se definen en un único archivo `.env` en la raíz del repositorio, que **se cre
 | `LOG_LEVEL`        | `info`                   | Nivel de registro de la API.                                                                                                                       |
 | `JWT_SECRET`       | (aleatorio por arranque) | Secreto (mínimo 32 caracteres) para firmar los tokens de acceso. Sin él las sesiones se pierden al reiniciar la API; en producción es obligatorio. |
 | `ANALYTICS_SECRET` | (aleatorio por arranque) | Secreto (mínimo 16 caracteres) con el que se calcula el hash anónimo de sesión de los eventos.                                                     |
+| `WEB_URL`          | primer `CORS_ORIGIN`     | Dirección del frontend para los enlaces de los correos (recuperar contraseña). En desarrollo el correo se imprime en la consola de la API.         |
 | `STORAGE_DIR`      | `storage/` en la raíz    | Carpeta donde la API guarda las fotos que suben los vendedores (ignorada por git).                                                                 |
 | `NODE_ENV`         | `development`            | Entorno de ejecución.                                                                                                                              |
 | `VITE_USE_MOCKS`   | `false`                  | `true` hace que el navegador use los datos simulados (MSW) en vez de la API.                                                                       |

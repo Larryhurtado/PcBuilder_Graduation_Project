@@ -136,6 +136,14 @@ describe('offers service: featured', () => {
     expect(repository.search).toHaveBeenCalledWith({ filters: {}, sort: 'newest', limit: 2 });
     expect(result.items).toHaveLength(2);
     expect(result).not.toHaveProperty('nextCursor');
+    expect(result.items[0].component).not.toHaveProperty('specs');
+  });
+
+  it('con includeSpecs agrega las especificaciones de cada componente (una sola consulta al catálogo)', async () => {
+    const { service, catalog } = setup({ rows: [row(2), row(1)] });
+    const result = await service.featured(2, { includeSpecs: true });
+    expect(catalog.getSpecs).toHaveBeenCalledTimes(1);
+    for (const item of result.items) expect(item.component).toHaveProperty('specs');
   });
 });
 

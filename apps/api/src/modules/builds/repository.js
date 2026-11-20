@@ -100,6 +100,12 @@ export function createBuildsRepository(db) {
       return rows;
     },
 
+    /** Cuenta eliminada: borra sus favoritos y deja sus armados sin dueño (siguen abiertos por su enlace). */
+    async detachUser(userId) {
+      await db.query('DELETE FROM builds.wishlist_items WHERE user_id = $1', [userId]);
+      await db.query('UPDATE builds.builds SET user_id = NULL WHERE user_id = $1', [userId]);
+    },
+
     async listWishlist(userId) {
       const { rows } = await db.query(
         `SELECT w.component_id, w.created_at AS added_at,

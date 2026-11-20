@@ -6,6 +6,8 @@ import { pinoHttp } from 'pino-http';
 import { errorHandler, notFoundHandler } from './http/error-handler.js';
 import { requestId } from './http/request-id.js';
 import { createDb } from './kernel/db.js';
+import { createConsoleEmail, createMemoryEmail } from './kernel/email.js';
+import { createEventBus } from './kernel/event-bus.js';
 import { createLocalStorage } from './kernel/storage.js';
 import { createAnalyticsModule } from './modules/analytics/index.js';
 import { createBuildsModule } from './modules/builds/index.js';
@@ -18,9 +20,10 @@ import { createVerificationModule } from './modules/verification/index.js';
 
 /**
  * Construye la aplicación Express sin arrancarla (así se puede probar con supertest).
- * @param {{ config: ReturnType<import('./kernel/config.js').loadConfig>, pool?: { query: Function } | null, logger?: import('pino').Logger }} options
+ * @param {{ config: ReturnType<import('./kernel/config.js').loadConfig>, pool?: { query: Function } | null, logger?: import('pino').Logger, email?: { send: Function }, rateLimits?: { auth?: object, forgot?: object } }} options
+ * `email` es el puerto de correo (por defecto, el adaptador de consola)
  */
-export function createApp({ config, pool = null, logger } = {}) {
+export function createApp({ config, pool = null, logger, email, rateLimits = {} } = {}) {
   const app = express();
   app.disable('x-powered-by');
 
@@ -52,10 +55,23 @@ export function createApp({ config, pool = null, logger } = {}) {
   const api = express.Router();
   if (pool) {
     const db = createDb(pool);
+    const events = createEventBus({
+      onError: (event, error) =>
+        logger?.error({ err: error }, `Error en un manejador de "${event}"`),
+    });
     const identity = createIdentityModule({
       db,
       jwtSecret: config.JWT_SECRET,
       secureCookie: config.NODE_ENV === 'production',
+      // En pruebas el correo no escribe nada; en desarrollo se ve en la consola de la API
+      email:
+        email ??
+        (config.NODE_ENV === 'test' ? createMemoryEmail() : createConsoleEmail({ logger })),
+      events,
+      webUrl: config.WEB_URL ?? config.CORS_ORIGIN.split(',')[0].trim(),
+      onEmailError: (error) => logger?.error({ err: error }, 'No se pudo enviar el correo'),
+      rateLimitOptions: rateLimits.auth,
+      forgotRateLimitOptions: rateLimits.forgot,
     });
     api.use(identity.router);
     app.locals.auth = identity.middleware;
@@ -87,6 +103,7 @@ export function createApp({ config, pool = null, logger } = {}) {
       offers: offers.facade,
       catalog: catalog.facade,
       auth: identity.middleware,
+      events,
     });
     api.use(builds.router);
     // Fotos subidas (almacenamiento local): se sirven como archivos estáticos, sin adivinar tipos
