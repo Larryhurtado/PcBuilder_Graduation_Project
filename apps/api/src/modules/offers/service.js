@@ -63,9 +63,12 @@ export function createOffersService({ repository, catalog }) {
     },
 
     /** Las ofertas más recientes (inicio, HU-02). */
-    async featured(limit = 8) {
+    async featured(limit = 8, { includeSpecs = false } = {}) {
       const rows = await repository.search({ filters: {}, sort: 'newest', limit });
-      return { items: rows.map((row) => toListItem(row, null)) };
+      const components = includeSpecs
+        ? await catalog.getSpecs([...new Set(rows.map((row) => row.componentId))])
+        : null;
+      return { items: rows.map((row) => toListItem(row, components)) };
     },
 
     /** Detalle de una oferta pública. Las pausadas, eliminadas o de comercios sin verificar no existen. */

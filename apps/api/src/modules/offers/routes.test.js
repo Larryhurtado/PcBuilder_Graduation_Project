@@ -78,8 +78,16 @@ describe('GET /offers/featured y /offers/:id', () => {
     const s = service();
     const res = await request(appWith(s)).get('/api/v1/offers/featured?limit=3');
     expect(res.status).toBe(200);
-    expect(s.featured).toHaveBeenCalledWith(3);
+    expect(s.featured).toHaveBeenCalledWith(3, { includeSpecs: false });
     expect(s.getOffer).not.toHaveBeenCalled();
+  });
+
+  it('featured acepta includeSpecs=true y rechaza otros valores', async () => {
+    const s = service();
+    await request(appWith(s)).get('/api/v1/offers/featured?includeSpecs=true');
+    expect(s.featured).toHaveBeenCalledWith(8, { includeSpecs: true });
+    const bad = await request(appWith(service())).get('/api/v1/offers/featured?includeSpecs=si');
+    expect(bad.status).toBe(422);
   });
 
   it('el límite de destacadas tiene máximo 20', async () => {

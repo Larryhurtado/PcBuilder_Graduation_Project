@@ -27,7 +27,10 @@ export const constraintsBodySchema = z.strictObject({
 export const ruleResultSchema = z.object({
   code: z.string(),
   status: z.enum(['ok', 'fail', 'unknown', 'not_applicable']),
-  message: z.string().optional(),
+  /** El motor devuelve `null` en las reglas que cumplen o no aplican; también se acepta omitido. */
+  message: z.string().nullish(),
+  /** Categorías de las piezas que intervienen en la regla. */
+  parts: z.array(z.string()).optional(),
   severity: z.string().optional(),
 });
 

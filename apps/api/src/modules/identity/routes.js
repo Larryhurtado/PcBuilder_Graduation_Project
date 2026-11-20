@@ -1,4 +1,12 @@
-import { loginBodySchema, registerBodySchema } from '@hw/contracts';
+import {
+  changePasswordBodySchema,
+  deleteAccountBodySchema,
+  forgotBodySchema,
+  loginBodySchema,
+  registerBodySchema,
+  resetBodySchema,
+  updateMeBodySchema,
+} from '@hw/contracts';
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { validate } from '../../http/validate.js';
@@ -16,6 +24,7 @@ const COOKIE_PATH = '/api/v1/auth';
  *   requireAuth: import('express').RequestHandler,
  *   secureCookie?: boolean,
  *   rateLimitOptions?: { windowMs?: number, limit?: number },
+ *   forgotRateLimitOptions?: { windowMs?: number, limit?: number },
  * }} deps
  */
 export function createIdentityRouter({
@@ -23,6 +32,7 @@ export function createIdentityRouter({
   requireAuth,
   secureCookie = false,
   rateLimitOptions = {},
+  forgotRateLimitOptions = {},
 }) {
   const router = Router();
 
@@ -33,6 +43,16 @@ export function createIdentityRouter({
     legacyHeaders: false,
     handler: (_req, _res, next) => next(new AppError('RATE_LIMITED')),
     ...rateLimitOptions,
+  });
+
+  // Pedir enlaces de recuperación es más delicado (envía correos): 5 por hora por IP
+  const forgotLimiter = rateLimit({
+    windowMs: 60 * 60_000,
+    limit: 5,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (_req, _res, next) => next(new AppError('RATE_LIMITED')),
+    ...forgotRateLimitOptions,
   });
 
   const cookieOptions = {
@@ -76,9 +96,58 @@ export function createIdentityRouter({
     res.status(204).end();
   });
 
+  // Recuperar contraseña: límite estricto por IP; responde 200 igual exista o no el correo
+  router.post(
+    '/auth/forgot',
+    forgotLimiter,
+    validate({ body: forgotBodySchema }),
+    async (req, res) => {
+      await service.requestPasswordReset(req.valid.body.email);
+      res.json({});
+    },
+  );
+
+  router.post('/auth/reset', limiter, validate({ body: resetBodySchema }), async (req, res) => {
+    await service.resetPassword(req.valid.body);
+    res.clearCookie(COOKIE_NAME, cookieOptions);
+    res.status(204).end();
+  });
+
   router.get('/me', requireAuth, async (req, res) => {
     res.json({ user: await service.getMe(req.user.userId) });
   });
+
+  router.patch('/me', requireAuth, validate({ body: updateMeBodySchema }), async (req, res) => {
+    res.json({ user: await service.updateProfile(req.user.userId, req.valid.body) });
+  });
+
+  router.post(
+    '/me/password',
+    requireAuth,
+    limiter,
+    validate({ body: changePasswordBodySchema }),
+    async (req, res) => {
+      const { refreshToken } = await service.changePassword(req.user.userId, req.valid.body);
+      // Las demás sesiones se cerraron; este dispositivo sigue con una cookie de refresco nueva
+      res.cookie(COOKIE_NAME, refreshToken, {
+        ...cookieOptions,
+        maxAge: REFRESH_TTL_SECONDS * 1000,
+      });
+      res.status(204).end();
+    },
+  );
+
+  router.delete(
+    '/me',
+    requireAuth,
+    limiter,
+    validate({ body: deleteAccountBodySchema }),
+    async (req, res) => {
+      await service.deleteAccount(req.user.userId, req.valid.body);
+      res.clearCookie(COOKIE_NAME, cookieOptions);
+      res.status(204).end();
+    },
+  );
 
   return router;
 }

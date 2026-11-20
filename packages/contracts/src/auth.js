@@ -65,3 +65,19 @@ export const authResponseSchema = z.object({
 });
 
 export const meResponseSchema = z.object({ user: userSchema });
+
+/** PATCH /me: por ahora solo el nombre. */
+export const updateMeBodySchema = z.strictObject({
+  fullName: z.string().trim().min(2).max(120),
+});
+
+/** POST /me/password: la contraseña actual y la nueva (con las reglas del registro). */
+export const changePasswordBodySchema = z.strictObject({
+  currentPassword: z.string().min(1).max(72),
+  newPassword: password,
+});
+
+/** DELETE /me: la contraseña como confirmación. */
+export const deleteAccountBodySchema = z.strictObject({
+  password: z.string().min(1).max(72),
+});

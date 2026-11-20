@@ -1,6 +1,6 @@
 // Fachada pública del módulo `identity` (regla M-1): lo único que otros módulos pueden importar.
-// Operaciones previstas (Diseño Integral, 4.1): authenticate(token), getUser(id),
-// setRole(userId, role), anonymize(userId).
+// Operaciones: authenticate(token), getUser(id), setRole(userId, role) e issueAccessToken(userId).
+// Al eliminar una cuenta publica `user.anonymized` en el bus de eventos.
 import bcrypt from 'bcryptjs';
 import { createAuthMiddleware } from '../../http/auth.js';
 import { createIdentityRepository } from './repository.js';
@@ -12,14 +12,21 @@ const BCRYPT_COST = 10;
 
 /**
  * @param {{ db: { query: Function }, jwtSecret?: string, secureCookie?: boolean,
- *   rateLimitOptions?: object, bcryptCost?: number }} deps
+ *   rateLimitOptions?: object, forgotRateLimitOptions?: object, bcryptCost?: number,
+ *   email?: object, events?: object, webUrl?: string, onEmailError?: Function }} deps
+ *   `email` es el puerto de correo y `events`, el bus de eventos de dominio
  */
 export function createIdentityModule({
   db,
   jwtSecret,
   secureCookie = false,
   rateLimitOptions,
+  forgotRateLimitOptions,
   bcryptCost = BCRYPT_COST,
+  email,
+  events,
+  webUrl,
+  onEmailError,
 }) {
   const service = createIdentityService({
     repository: createIdentityRepository(db),
@@ -28,6 +35,10 @@ export function createIdentityModule({
       hash: (plain) => bcrypt.hash(plain, bcryptCost),
       compare: (plain, hash) => bcrypt.compare(plain, hash),
     },
+    email,
+    events,
+    webUrl,
+    onEmailError,
   });
   const middleware = createAuthMiddleware(service.authenticate);
   return {
@@ -36,6 +47,7 @@ export function createIdentityModule({
       requireAuth: middleware.requireAuth,
       secureCookie,
       rateLimitOptions,
+      forgotRateLimitOptions,
     }),
     /** requireAuth y requireRole para las rutas protegidas de otros módulos. */
     middleware,

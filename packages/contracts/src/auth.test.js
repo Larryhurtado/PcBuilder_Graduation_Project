@@ -86,3 +86,53 @@ describe('resetBodySchema', () => {
     expect(resetBodySchema.safeParse({ password: 'abcd1234' }).success).toBe(false);
   });
 });
+
+describe('cuenta: perfil, cambio de contraseña y eliminación', () => {
+  it('updateMeBodySchema: nombre de 2 a 120 caracteres, recortado, sin otros campos', async () => {
+    const { updateMeBodySchema } = await import('./index.js');
+    expect(updateMeBodySchema.parse({ fullName: '  Ana  ' })).toEqual({ fullName: 'Ana' });
+    expect(updateMeBodySchema.safeParse({ fullName: 'A' }).success).toBe(false);
+    expect(updateMeBodySchema.safeParse({ fullName: 'x'.repeat(121) }).success).toBe(false);
+    expect(updateMeBodySchema.safeParse({ fullName: 'Ana', role: 'admin' }).success).toBe(false);
+  });
+
+  it('changePasswordBodySchema: la nueva sigue las reglas del registro; la actual solo debe venir', async () => {
+    const { changePasswordBodySchema } = await import('./index.js');
+    expect(
+      changePasswordBodySchema.safeParse({ currentPassword: 'x', newPassword: 'abcd1234' }).success,
+    ).toBe(true);
+    for (const bad of ['corta1', 'sololetras', '12345678']) {
+      expect(
+        changePasswordBodySchema.safeParse({ currentPassword: 'x', newPassword: bad }).success,
+        bad,
+      ).toBe(false);
+    }
+    expect(
+      changePasswordBodySchema.safeParse({ currentPassword: '', newPassword: 'abcd1234' }).success,
+    ).toBe(false);
+  });
+
+  it('deleteAccountBodySchema pide la contraseña', async () => {
+    const { deleteAccountBodySchema } = await import('./index.js');
+    expect(deleteAccountBodySchema.safeParse({ password: 'x' }).success).toBe(true);
+    expect(deleteAccountBodySchema.safeParse({ password: '' }).success).toBe(false);
+    expect(deleteAccountBodySchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('ruleResultSchema acepta el message null del motor', () => {
+  it('con null, omitido o texto; y trae parts', async () => {
+    const { ruleResultSchema } = await import('./index.js');
+    const base = { code: 'RC-01', status: 'ok' };
+    expect(ruleResultSchema.safeParse({ ...base, message: null, parts: [] }).success).toBe(true);
+    expect(ruleResultSchema.safeParse(base).success).toBe(true);
+    expect(
+      ruleResultSchema.safeParse({
+        ...base,
+        status: 'fail',
+        message: 'Sockets distintos',
+        parts: ['cpu'],
+      }).success,
+    ).toBe(true);
+  });
+});

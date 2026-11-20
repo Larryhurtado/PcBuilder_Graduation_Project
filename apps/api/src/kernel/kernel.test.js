@@ -33,6 +33,12 @@ describe('loadConfig', () => {
     );
   });
 
+  it('WEB_URL, si se define, debe ser una URL', () => {
+    expect(loadConfig({}).WEB_URL).toBeUndefined();
+    expect(loadConfig({ WEB_URL: 'https://pcbuilder.co' }).WEB_URL).toBe('https://pcbuilder.co');
+    expect(() => loadConfig({ WEB_URL: 'no-es-url' })).toThrow();
+  });
+
   it('ANALYTICS_SECRET exige 16 caracteres si se define', () => {
     expect(() => loadConfig({ ANALYTICS_SECRET: 'corto' })).toThrow();
     expect(loadConfig({ ANALYTICS_SECRET: 'x'.repeat(16) }).ANALYTICS_SECRET).toBeDefined();

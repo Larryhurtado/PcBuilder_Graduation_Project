@@ -136,7 +136,7 @@ Paquetes del monorepo que el frontend importa:
 - Los roles son `buyer`, `seller` y `admin`. Las guardas del router usan el rol del usuario.
 - Al convertirse en vendedor (`POST /seller/convert`), la respuesta trae un **token nuevo con rol vendedor**: hay que reemplazar el token en memoria.
 
-**Reglas de los formularios de cuenta [Decidido]:** correo con formato válido; contraseña de al menos 10 caracteres; nombre de 2 a 120 caracteres; el registro exige aceptar términos y política de privacidad (se envía la versión aceptada, `v1.0`).
+**Reglas de los formularios de cuenta [Decidido]:** correo con formato válido; contraseña de **8 a 72 caracteres con al menos una letra y un número** (es la regla de `registerBodySchema`, que manda; antes decía 10); nombre de 2 a 120 caracteres; el registro exige `acceptTerms: true` y la versión de la política la fija el servidor (`PRIVACY_POLICY_VERSION`, no se envía).
 
 ---
 
@@ -294,6 +294,22 @@ Las formas de petición y respuesta están **[Propuestas]** hasta que Erick publ
 | `GET /me` | encabezado `Authorization: Bearer <accessToken>` | `200 { user }` |
 
 `user` = `{ id, email, fullName, role }`. Reglas de la clave al registrarse: 8 a 72 caracteres, al menos una letra y un número. Errores propios: `EMAIL_TAKEN` (409), `INVALID_CREDENTIALS` (401, mismo mensaje para clave errónea y correo inexistente), `ROLE_FORBIDDEN` (403, cuenta deshabilitada), `UNAUTHENTICATED` (401, sin token, token inválido o refresco inválido), `TOKEN_EXPIRED` (401, token de acceso vencido: refrescar), `RATE_LIMITED` (429, 20 intentos cada 15 min por IP). La cookie `refresh_token` es `HttpOnly`, `SameSite=Lax`, ruta `/api/v1/auth`, 7 días; cada refresco la rota, y reusar una ya usada cierra todas las sesiones de la cuenta. Las peticiones con cookie necesitan `credentials: 'include'` (con el proxy de Vite `/api` funciona sin más).
+
+**Cuenta y recuperación de contraseña [Implementado].** Esquemas en `@hw/contracts`: `updateMeBodySchema`, `changePasswordBodySchema`, `deleteAccountBodySchema`, `forgotBodySchema`, `resetBodySchema`.
+
+| Ruta | Acceso | Cuerpo → respuesta |
+|---|---|---|
+| `PATCH /me` | Autenticado | `{ fullName }` (2 a 120, sin espacios sobrantes) → `200 { user }` |
+| `POST /me/password` | Autenticado | `{ currentPassword, newPassword }` → `204`. La actual incorrecta da `401 INVALID_CREDENTIALS` (no es sesión vencida: el cliente no debe refrescar ni cerrar sesión por este 401). Cierra **todas las demás sesiones** y entrega una cookie de refresco nueva a este dispositivo, así que quien cambia la contraseña sigue dentro. Límite: 20 intentos cada 15 minutos por IP. |
+| `DELETE /me` | Autenticado | `{ password }` → `204` y borra la cookie de refresco. Anonimiza la cuenta (correo, nombre y contraseña), cierra todas las sesiones y borra los favoritos. **Los armados ya guardados siguen abiertos por su enlace pero sin dueño** (`isOwner` pasa a `false` para todos). Solo cuentas de comprador: una cuenta de vendedor o administrador recibe `403 ROLE_FORBIDDEN` ("Las cuentas de vendedor se eliminan por medio de soporte."). El correo queda libre para registrarse de nuevo. |
+| `POST /auth/forgot` | Público | `{ email }` → `200 {}` **igual exista o no la cuenta** (y no envía nada si no existe). Máximo **5 por hora por IP** (`429 RATE_LIMITED`). |
+| `POST /auth/reset` | Público | `{ token, password }` → `204`. Token inválido, vencido o ya usado → `400 INVALID_RESET_TOKEN`. El enlace **vale 15 minutos** y sirve una vez; pedir otro deja sin efecto los anteriores; al restablecer se cierran todas las sesiones. |
+
+El correo lleva el enlace `{WEB_URL}/restablecer?token=…` (por defecto `http://localhost:5173`). **Todavía no hay proveedor de correo:** en desarrollo el mensaje se escribe en la consola donde corre `npm run dev:api` (ahí se copia el enlace); cuando se elija un servicio se cambia el adaptador sin tocar el resto. Un 401 de `/me/password` o `/me` con la contraseña mal puesta debe mostrarse como error del formulario.
+
+**Ofertas destacadas:** `GET /offers/featured` ahora acepta `includeSpecs=true` (igual que `GET /offers`), así que el inicio puede usarlo.
+
+**Respuestas del motor:** las reglas de `results` pueden traer `message: null` y `parts` (categorías implicadas); `ruleResultSchema` lo acepta (con `null`, omitido o texto), así que ya no se rechaza la respuesta de `/compat/validate` ni la `evaluation` de los armados.
 
 **Directorio de comercios [Implementado]: `GET /stores`** (público, para "Comercios verificados" del inicio). Parámetros opcionales: `q` (texto en el nombre comercial, mínimo 2 caracteres), `city` (ciudad, sin distinguir mayúsculas) y `limit` (1 a 50, por defecto 12). Respuesta `{ items: [{ id, name, description, logoUrl, department, city, commercialCenter, address, whatsappE164, offersCount }] }` (`publicStoresResponseSchema` en `@hw/contracts`). Solo salen comercios **verificados**, ordenados por cantidad de ofertas visibles (de más a menos) y luego por nombre; nunca se expone la razón social ni el NIT. `logoUrl` es `null` mientras no haya carga de logos. Si la forma que usan los datos simulados es distinta, avisen y se ajusta el contrato.
 

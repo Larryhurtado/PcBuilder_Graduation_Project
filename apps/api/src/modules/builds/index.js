@@ -9,16 +9,23 @@ import { createBuildsService } from './service.js';
 /**
  * @param {{ db: { query: Function, transaction: Function }, compat: object, offers: object,
  *   catalog: object, auth: { requireAuth: Function, optionalAuth: Function },
- *   rateLimitOptions?: object }} deps
+ *   rateLimitOptions?: object, events?: { on: Function } }} deps
  *   `compat`, `offers` y `catalog` son las fachadas de esos módulos; `auth`, los middlewares de identity
  */
-export function createBuildsModule({ db, compat, offers, catalog, auth, rateLimitOptions }) {
-  const service = createBuildsService({
-    repository: createBuildsRepository(db),
-    compat,
-    offers,
-    catalog,
-  });
+export function createBuildsModule({
+  db,
+  compat,
+  offers,
+  catalog,
+  auth,
+  rateLimitOptions,
+  events,
+}) {
+  const repository = createBuildsRepository(db);
+  const service = createBuildsService({ repository, compat, offers, catalog });
+  // Cuenta eliminada: los favoritos se borran y los armados que ya se compartieron siguen
+  // abiertos por su enlace, pero sin dueño (anónimos)
+  events?.on('user.anonymized', ({ userId }) => repository.detachUser(userId));
   return {
     router: createBuildsRouter({ service, auth, rateLimitOptions }),
     facade: { getBuildByCode: service.getByShareCode },
